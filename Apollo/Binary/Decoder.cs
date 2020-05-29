@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -149,10 +150,12 @@ namespace Apollo.Binary {
         });
 
         public static async Task<T> Decode<T>(Stream input) {
+            int version;
+
             using (BinaryReader reader = new BinaryReader(input)) {
                 if (!DecodeHeader(reader)) throw new InvalidDataException();
 
-                int version = reader.ReadInt32();
+                version = reader.ReadInt32();
 
                 if (version > Common.version && await MessageWindow.Create(
                     "The content you're attempting to read was created with a newer version of\n" +
@@ -161,7 +164,20 @@ namespace Apollo.Binary {
                     new string[] { "Yes", "No" }, null
                 ) == "No") throw new InvalidDataException();
 
-                return Decode<T>(reader, version);
+                if (version < 30) return Decode<T>(reader, version);
+                else {
+                    byte[] compressed = reader.ReadBytes((int)(input.Length - input.Position));
+
+                    try {
+                        using (MemoryStream zipFile = new MemoryStream(compressed))
+                            using (ZipArchive archive = new ZipArchive(zipFile))
+                                using (Stream apoldata = archive.GetEntry(Common.zipKey).Open())
+                                    using (BinaryReader uncompressed = new BinaryReader(apoldata))
+                                        return Decode<T>(uncompressed, version);
+                    } catch {
+                        throw new InvalidDataException();
+                    }
+                }
             }
         }
 

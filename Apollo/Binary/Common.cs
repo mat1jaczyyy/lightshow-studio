@@ -9,6 +9,7 @@ using Apollo.Undo;
 
 namespace Apollo.Binary {
     public static class Common {
+        public const string zipKey = "apoldata";
         public const int version = 30;
 
         public static readonly Type[] id = new Type[] {

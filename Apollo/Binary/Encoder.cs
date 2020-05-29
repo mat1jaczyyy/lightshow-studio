@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 
@@ -149,7 +150,14 @@ namespace Apollo.Binary {
         }
 
         public static byte[] Encode(object o) => Encode(writer => {
-            Encode(writer, (dynamic)o);
+            using (MemoryStream output = new MemoryStream()) {
+                using (ZipArchive archive = new ZipArchive(output, ZipArchiveMode.Update, false))
+                    using (Stream apoldata = archive.CreateEntry(Common.zipKey, CompressionLevel.Fastest).Open())
+                        using (BinaryWriter compressing = new BinaryWriter(apoldata))
+                            Encode(compressing, (dynamic)o);
+                
+                writer.Write(output.ToArray());
+            }
         });
 
         public static void Encode(BinaryWriter writer, Copyable o) {
