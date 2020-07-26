@@ -375,8 +375,10 @@ namespace Apollo.Elements {
 
             Task.Run(() => {
                 lock (locker) {
-                    if (buffer.TryDequeue(out byte[] msg))
+                    if (buffer.TryDequeue(out byte[] msg)) {
+                        Console.WriteLine($"SysEx OUT {string.Join(", ", msg.Select(i => i.ToString()))}");
                         Output.Send(msg);
+                    }
                     
                     signalCount++;
                 }
@@ -396,7 +398,7 @@ namespace Apollo.Elements {
         public virtual void Send(Color[] previous, Color[] snapshot, List<RawUpdate> n) {
             if (!n.Any() || !Usable) return;
 
-            if (CFWOptimize(n, out IEnumerable<byte> sysex)) {
+            if (CFWOptimize(previous, snapshot, n, out IEnumerable<byte> sysex)) {
                 SysExSend(sysex);
                 return;
             }
@@ -468,7 +470,67 @@ namespace Apollo.Elements {
             RGBSend(output);
         }
 
-        bool CFWOptimize(List<RawUpdate> updates, out IEnumerable<byte> ret) {
+        class CFWUpdate {
+            public Color Color;
+            public List<byte[]> Data = new List<byte[]>();
+            public int Size;
+
+            public void AddData(byte[] data) {
+                Data.Add(data);
+                Size += data.Length;
+            }
+
+            public CFWUpdate(Color color) => Color = color;
+
+            public int PredictSize(CFWNode n) => Size + (
+                n.LastColor() == Color
+                    ? Convert.ToInt32(n.Path.Last().Data.Count == 1)
+                    : 3
+            );
+
+            public byte[] ToBytes()
+                => new [] { (byte)(Color.Red | (Data.Count == 1? 0x40 : 0)), Color.Green, Color.Blue }
+                    .Concat(Data.Count > 1? new [] { (byte)Data.Count } : Enumerable.Empty<byte>())
+                    .Concat(Data.SelectMany(i => i))
+                    .ToArray();
+        }
+
+        class CFWNode {
+            public List<CFWUpdate> Path;
+            public HashSet<byte> Filled;
+            public int Size;
+
+            public Color LastColor() => Path.LastOrDefault()?.Color;
+
+            public CFWNode(List<CFWUpdate> path = null, HashSet<byte> filled = null) {
+                Path = path?? new List<CFWUpdate>();
+                Filled = filled?? new HashSet<byte>();
+            }
+
+            public CFWNode Add(CFWUpdate update, HashSet<byte> filled, int size) {
+                CFWNode ret = new CFWNode(Path.ToList(), Filled.ToHashSet());
+                ret.Filled.UnionWith(filled);
+
+                if (LastColor() == update.Color) {
+                    ret.Path.RemoveAt(ret.Path.Count - 1);
+                    update.Data.AddRange(Path.Last().Data);
+                }
+
+                ret.Path.Add(update);
+                ret.Size = size;
+
+                return ret;
+            }
+
+            public byte[] ToBytes()
+                => Enumerable.Reverse(Path).SelectMany(i => i.ToBytes()).ToArray();
+        }
+
+        static List<(int, int)> directions = new List<(int, int)>() {
+            (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1),
+        };
+
+        bool CFWOptimize(Color[] previous, Color[] snapshot, List<RawUpdate> updates, out IEnumerable<byte> ret) {
             ret = null;
             
             if (Type != LaunchpadType.CFW) return false;
@@ -476,24 +538,103 @@ namespace Apollo.Elements {
             IEnumerable<Color> colors = updates.Select(i => i.Color).Distinct();
             if (colors.Count() > 79) return false;
 
-            ret = SysExStart.Concat(new byte[] { 0x5F }).Concat(
-                colors.SelectMany(i => {
-                    IEnumerable<byte> positions = updates.Where(j => j.Color == i).Select(j => j.Index);
-                    List<byte> chunk = new List<byte>() { i.Red, i.Green, i.Blue };
-                    
-                    if (positions.Count() > 1) chunk.Add((byte)positions.Count());
-                    else chunk[0] |= 0x40;
+            CFWNode optimal = null;
 
-                    // NOTE MODE LIGHT INDEX IS 100 HERE, NOT 99 (SCREEN IS UNFILTERED)
-                    // TODO Heaven row/column/direction matching
-                    foreach (byte index in positions)
-                        chunk.Add(index);
-                    
-                    return chunk;
-                })
-            );
+            RawUpdate mode = updates.FirstOrDefault(i => i.Index == 100);
+            if (mode != null) {
+                updates = updates.ToList();
+                updates.Remove(mode);
+            }
 
-            return ret.Count() <= 319; // Hard limit is 320 but this doesn't include SysExEnd
+            Stack<CFWNode> q = new Stack<CFWNode>();
+            q.Push(new CFWNode());
+
+            while (q.TryPop(out CFWNode c)) {
+                if (c.Size >= optimal?.Size == true) continue;
+
+                HashSet<int> ignore = new HashSet<int>();
+
+                bool complete = true;
+
+                for (int i = 1; i < 99; i++) {
+                    if (i == 9 || i == 91) continue;
+                    if (c.Filled.Contains((byte)i)) continue; // TODO Some cases can get better optimization if we start searching from wildcards too!
+                    if (previous[i] == snapshot[i]) continue;
+
+                    complete = false;
+
+                    int y = i / 10;
+                    int x = i % 10;
+
+                    CFWUpdate data = new CFWUpdate(snapshot[i]);
+                    HashSet<byte> filled = new HashSet<byte>();
+
+                    for (int d = 0; d < 8; d++) {
+                        if (ignore.Contains(i * 8 + d)) continue;
+
+                        (int dx, int dy) = directions[d];
+
+                        int ny = y;
+                        int nx = x;
+                        int ni = i;
+
+                        HashSet<int> positions = new HashSet<int>(); // TODO If ignore is trash, use l++
+
+                        while (0 <= nx && nx <= 9 && 0 <= ny && ny <= 9 && ni != 0 && ni != 9 && ni != 90 && ni != 99) {
+                            if (!c.Filled.Contains((byte)ni) && snapshot[ni] != snapshot[i]) break;
+
+                            positions.Add(ni);
+
+                            ny += dy;
+                            nx += dx;
+                            ni = ny * 10 + nx;
+                        }
+
+                        if (positions.Count == 10 || (positions.Count == 8 && ((d % 4 == 0 && (x == 0 || x == 9)) || (d % 4 == 2 && (y == 0 || y == 9))))) {
+                            if (d % 4 == 0) data.AddData(new [] { (byte)(118 + x) });
+                            else if (d % 4 == 2) data.AddData(new [] { (byte)(108 + y) });
+
+                        } else if (positions.Count >= 4)
+                            data.AddData(new [] { (byte)(100 + d), (byte)i, (byte)(positions.Count - 1) });
+                        
+                        else continue;
+
+                        foreach (int p in positions) {
+                            ignore.Add(p * 8 + d);
+                            filled.Add((byte)p);
+                        }
+                    }
+
+                    if (data.Size == 0) {
+                        data.AddData(new [] { (byte)i });
+                        filled.Add((byte)i);
+                    }
+
+                    if (data.Color == mode?.Color == true) {
+                        data.AddData(new byte[] { 99 });
+                        mode = null;
+                    }
+
+                    int target = c.Size + data.PredictSize(c);
+
+                    if (target <= 317 && target >= optimal?.Size != true)  // Hard limit is 320 but this doesn't include SysEx stuffs
+                        q.Push(c.Add(data, filled, target));
+                }
+
+                if (complete) optimal = c;
+            }
+
+            if (optimal == null) return false;
+
+            if (mode != null) {
+                CFWUpdate data = new CFWUpdate(mode.Color);
+                data.AddData(new byte[] { 99 });
+                optimal.Path.Add(data);
+            }
+
+            ret = SysExStart.Concat(new byte[] { 0x5F }).Concat(optimal.ToBytes());
+
+            return ret.Count() <= 319;
         }
 
         void RGBSend(List<RawUpdate> rgb) {
