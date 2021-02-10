@@ -51,7 +51,7 @@ namespace Apollo.Viewers {
         }
 
         public void Contents_Insert(int index, Device device) {
-            DeviceViewer viewer = device.Collapsed? (DeviceViewer)new CollapsedDeviceViewer(device) : new DeviceViewer(device);
+            DeviceViewer viewer = device.Data.Collapsed? (DeviceViewer)new CollapsedDeviceViewer(device) : new DeviceViewer(device);
             viewer.Added += Device_Insert;
             viewer.DeviceCollapsed += Device_Collapsed;
 

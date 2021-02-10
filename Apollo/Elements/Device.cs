@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 
+using Avalonia.Controls;
+
 using Apollo.Core;
 using Apollo.Helpers;
 using Apollo.Rendering;
@@ -13,7 +15,41 @@ using Apollo.Structures;
 using Apollo.Viewers;
 
 namespace Apollo.Elements {
+    public abstract class DeviceData {
+        public Device Instance = null;
+
+        protected void SpecificViewer<T>(Action<T> func) where T: IControl {
+            if (Instance?.Viewer?.SpecificViewer is T viewer)
+                func?.Invoke(viewer);
+        }
+
+        public bool Collapsed = false;
+        
+        bool _enabled = true;
+        public bool Enabled {
+            get => _enabled;
+            set {
+                if (_enabled != value) {
+                    _enabled = value;
+
+                    Instance?.Viewer?.SetEnabled();
+                }
+            }
+        }
+
+        protected abstract DeviceData CloneSpecific();
+
+        public DeviceData Clone() {
+            DeviceData clone = CloneSpecific();
+            clone.Collapsed = Collapsed;
+            clone.Enabled = Enabled;
+            return clone;
+        }
+    }
+
     public abstract class Device: SignalReceiver, ISelect, IMutable {
+        public readonly DeviceData Data;
+
         public readonly string DeviceIdentifier;
         public readonly string Name;
 
@@ -36,23 +72,15 @@ namespace Apollo.Elements {
         public Chain Parent;
         public int? ParentIndex;
 
-        public bool Collapsed = false;
-        
-        bool _enabled = true;
         public bool Enabled {
-            get => _enabled;
-            set {
-                if (_enabled != value) {
-                    _enabled = value;
-
-                    Viewer?.SetEnabled();
-                }
-            }
+            get => Data.Enabled;
+            set => Data.Enabled = value;
         }
 
         public abstract Device Clone();
         
-        protected Device(string identifier, string name = null) {
+        protected Device(DeviceData data, string identifier, string name = null) {
+            Data = data;
             DeviceIdentifier = identifier;
             Name = name?? this.GetType().ToString().Split(".").Last();
         }

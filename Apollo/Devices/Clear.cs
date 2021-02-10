@@ -10,35 +10,40 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Clear: Device {
+    public class ClearData: DeviceData {
         ClearType _mode;
         public ClearType Mode {
             get => _mode;
             set {
                 _mode = value;
 
-                if (Viewer?.SpecificViewer != null) ((ClearViewer)Viewer.SpecificViewer).SetMode(Mode);
+                SpecificViewer<ClearViewer>(i => i.SetMode(Mode));
             }
         }
-        
-        public override Device Clone() => new Clear(Mode) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
 
-        public Clear(ClearType mode = ClearType.Lights): base("clear") => Mode = mode;
+        protected override DeviceData CloneSpecific() => new ClearData(Mode);
+
+        public ClearData(ClearType mode = ClearType.Lights) => Mode = mode;
+    }
+
+    public class Clear: Device {
+        public new ClearData Data => (ClearData)Data;
+
+        public override Device Clone() => new Clear((ClearData)Data.Clone());
+        
+        public Clear(ClearData data): base(data, "clear") {}
 
         public override void MIDIProcess(List<Signal> n) {
             if (n.Any(i => !i.Color.Lit)) {
-                if (Mode == ClearType.Multi) Multi.InvokeReset();
-                else MIDI.ClearState(multi: Mode == ClearType.Both);
+                if (Data.Mode == ClearType.Multi) Multi.InvokeReset();
+                else MIDI.ClearState(multi: Data.Mode == ClearType.Both);
             }
 
             InvokeExit(n);
         }
-        
+
         public class ModeUndoEntry: SimplePathUndoEntry<Clear, ClearType> {
-            protected override void Action(Clear item, ClearType element) => item.Mode = element;
+            protected override void Action(Clear item, ClearType element) => item.Data.Mode = element;
             
             public ModeUndoEntry(Clear clear, ClearType u, ClearType r)
             : base($"Clear Mode Changed to {r.ToString()}", clear, u, r) {}

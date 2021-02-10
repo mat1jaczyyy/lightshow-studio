@@ -28,7 +28,7 @@ namespace Apollo.DeviceViewers {
 
             _clear = clear;
 
-            ClearMode.SelectedIndex = (int)_clear.Mode;
+            ClearMode.SelectedIndex = (int)_clear.Data.Mode;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _clear = null;
@@ -36,10 +36,10 @@ namespace Apollo.DeviceViewers {
         void Mode_Changed(object sender, SelectionChangedEventArgs e) {
             ClearType selected = (ClearType)ClearMode.SelectedIndex;
 
-            if (_clear.Mode != selected) 
+            if (_clear.Data.Mode != selected) 
                 Program.Project.Undo.AddAndExecute(new Clear.ModeUndoEntry(
                     _clear, 
-                    _clear.Mode, 
+                    _clear.Data.Mode, 
                     selected
                 ));
         }

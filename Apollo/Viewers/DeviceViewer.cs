@@ -195,7 +195,7 @@ namespace Apollo.Viewers {
                 menu.Open(Draggable);
             
             } else if (MouseButton == PointerUpdateKind.LeftButtonPressed && e.ClickCount == 2) {
-                _device.Collapsed = !_device.Collapsed;
+                _device.Data.Collapsed = !_device.Data.Collapsed;
                 DeviceCollapsed?.Invoke(_device.ParentIndex.Value);
             }
         }
