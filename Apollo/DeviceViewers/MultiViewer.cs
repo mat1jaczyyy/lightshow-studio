@@ -63,7 +63,7 @@ namespace Apollo.DeviceViewers {
             _parent.Header.CornerRadius = new CornerRadius(0);
 
             GridContainer.MaxWidth = double.MaxValue;
-            Set(null, _multi[index].SecretMultiFilter);
+            Set(null, _multi[index].Data.SecretMultiFilter);
         }
 
         protected override void Expand_Remove() {
@@ -97,14 +97,14 @@ namespace Apollo.DeviceViewers {
         bool[] old;
 
         void PadStarted(int index) {
-            bool[] filter = _multi[(int)_multi.Expanded].SecretMultiFilter;
+            bool[] filter = _multi[(int)_multi.Expanded].Data.SecretMultiFilter;
             drawingState = !filter[LaunchpadGrid.GridToSignal(index)];
             old = filter.ToArray();
         }
 
         void PadPressed(int index) => Grid.SetColor(
             index,
-            GetColor(_multi[(int)_multi.Expanded].SecretMultiFilter[LaunchpadGrid.GridToSignal(index)] = drawingState)
+            GetColor(_multi[(int)_multi.Expanded].Data.SecretMultiFilter[LaunchpadGrid.GridToSignal(index)] = drawingState)
         );
 
         void PadFinished(int index) {

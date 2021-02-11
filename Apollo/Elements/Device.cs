@@ -45,6 +45,11 @@ namespace Apollo.Elements {
             clone.Enabled = Enabled;
             return clone;
         }
+
+        protected abstract Device ActivateSpecific(DeviceData data);
+
+        public Device Activate()
+            => ActivateSpecific(Clone());
     }
 
     public abstract class Device: SignalReceiver, ISelect, IMutable {
@@ -65,7 +70,7 @@ namespace Apollo.Elements {
             get => ParentIndex;
         }
         
-        public ISelect IClone() => (ISelect)Clone();
+        public ISelect IClone() => (ISelect)Data.Activate();
 
         public DeviceViewer Viewer { get; set; }
         
@@ -76,11 +81,11 @@ namespace Apollo.Elements {
             get => Data.Enabled;
             set => Data.Enabled = value;
         }
-
-        public abstract Device Clone();
         
         protected Device(DeviceData data, string identifier, string name = null) {
             Data = data;
+            Data.Instance = this;
+
             DeviceIdentifier = identifier;
             Name = name?? this.GetType().ToString().Split(".").Last();
         }

@@ -17,8 +17,8 @@ namespace Apollo.Binary {
 
             typeof(Project),
             typeof(Track),
-            typeof(Chain),
-            typeof(Device),
+            typeof(ChainData),
+            typeof(DeviceData),
             typeof(Launchpad),
 
             typeof(Group),

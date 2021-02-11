@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using StringBuilder = System.Text.StringBuilder;
 
 using Avalonia.Controls;
 
@@ -16,7 +17,65 @@ using Apollo.Viewers;
 namespace Apollo.Elements {
     public interface IChainParent: ISelect {}
 
+    public class ChainData {
+        public Chain Instance = null;
+
+        ChainInfo Info => Instance?.Info;
+
+        public List<DeviceData> Devices = new();
+
+        string _name;
+        public string Name {
+            get => _name;
+            set {
+                _name = value;
+                Info?.Rename.SetName(_name);
+            }
+        }
+
+        bool _enabled = true;
+        public bool Enabled {
+            get => _enabled;
+            set {
+                if (_enabled != value) {
+                    _enabled = value;
+
+                    Info?.SetEnabled();
+                }
+            }
+        }
+
+        bool[] _filter;
+        public bool[] SecretMultiFilter {
+            get => _filter;
+            set {
+                if (value.Length == 101) {
+                    _filter = value;
+
+                    if (Instance?.Parent is Multi multi && multi.Viewer?.SpecificViewer is MultiViewer viewer)
+                        viewer.Set(Instance, _filter);
+                }
+            }
+        }
+
+        public ChainData Clone() => new ChainData(Devices.Select(i => i.Clone()).ToList(), Name, SecretMultiFilter.ToArray()) {
+            Enabled = Enabled
+        };
+
+        public ChainData(List<DeviceData> init = null, string name = "Chain #", bool[] filter = null) {
+            Devices = init?? new List<DeviceData>();
+            Name = name;
+
+            if (filter == null || filter.Length != 101) filter = new bool[101];
+            _filter = filter;
+        }
+
+        public Chain Activate() => new Chain(Clone());
+    }
+
     public class Chain: SignalReceiver, ISelect, ISelectParent, IMutable, IName {
+        public readonly ChainData Data;
+        
         public ISelectViewer IInfo {
             get => Info;
         }
@@ -117,54 +176,34 @@ namespace Apollo.Elements {
         public int Count {
             get => Devices.Count;
         }
-
-        string _name;
+        
         public string Name {
-            get => _name;
-            set {
-                _name = value;
-                Info?.Rename.SetName(_name);
-            }
+            get => Data.Name;
+            set => Data.Name = value;
         }
 
         public string ProcessedName {
             get {
-                string ret = "";
-                for (int i = 0; i < _name.Length; i++)
-                    ret += (_name[i] == '#' && (i == 0 || _name[i - 1] == ' ') && (i == _name.Length - 1 || _name[i + 1] == ' '))? (ParentIndex + 1).ToString() : _name[i].ToString();
+                StringBuilder ret = new StringBuilder();
 
-                return ret;
+                for (int i = 0; i < Data.Name.Length; i++)
+                    ret.Append(
+                        (Data.Name[i] == '#' && (i == 0 || Data.Name[i - 1] == ' ') && (i == Data.Name.Length - 1 || Data.Name[i + 1] == ' '))
+                            ? (ParentIndex + 1).ToString()
+                            : Data.Name[i].ToString()
+                    );
+
+                return ret.ToString();
             } 
         }
 
-        bool _enabled = true;
         public bool Enabled {
-            get => _enabled;
-            set {
-                if (_enabled != value) {
-                    _enabled = value;
-
-                    Info?.SetEnabled();
-                }
-            }
+            get => Data.Enabled;
+            set => Data.Enabled = value;
         }
-
-        bool[] _filter;
-        public bool[] SecretMultiFilter {
-            get => _filter;
-            set {
-                if (value.Length == 101) {
-                    _filter = value;
-                    if (Parent is Multi multi && multi.Viewer?.SpecificViewer != null) ((MultiViewer)multi.Viewer.SpecificViewer).Set(this, _filter);
-                }
-            }
-        }
-
-        public Chain Clone() => new Chain(Devices.Select(i => i.Clone()).ToList(), Name, SecretMultiFilter.ToArray()) {
-            Enabled = Enabled
-        };
 
         public void Insert(int index, Device device) {
+            Data.Devices.Insert(index, device.Data);
             Devices.Insert(index, device);
             Reroute();
 
@@ -187,16 +226,16 @@ namespace Apollo.Elements {
 
             if (dispose) Devices[index].Dispose();
             Devices.RemoveAt(index);
+            Data.Devices.RemoveAt(index);
             Reroute();
         }
 
-        public Chain(List<Device> init = null, string name = "Chain #", bool[] filter = null) {
-            Devices = init?? new List<Device>();
-            Name = name;
+        public Chain(ChainData data) {
+            Data = data;
+            Data.Instance = this;
 
-            if (filter == null || filter.Length != 101) filter = new bool[101];
-            _filter = filter;
-            
+            Devices = data.Devices.Select(i => i.Activate()).ToList();
+
             Reroute();
         }
 
@@ -220,23 +259,21 @@ namespace Apollo.Elements {
         
         public class DeviceInsertedUndoEntry: PathUndoEntry<Chain> {
             int index;
-            Device device;
+            DeviceData device;
 
             protected override void UndoPath(params Chain[] items) => items[0].Remove(index);
-            protected override void RedoPath(params Chain[] items) => items[0].Insert(index, device.Clone());
-            
-            protected override void OnDispose() => device.Dispose();
+            protected override void RedoPath(params Chain[] items) => items[0].Insert(index, device.Activate());
             
             public DeviceInsertedUndoEntry(Chain chain, int index, Device device)
             : base($"Device ({device.Name}) Inserted", chain) {
                 this.index = index;
-                this.device = device.Clone();
+                this.device = device.Data.Clone();
             }
             
             DeviceInsertedUndoEntry(BinaryReader reader, int version)
             : base(reader, version) {
                 index = reader.ReadInt32();
-                device = Decoder.Decode<Device>(reader, version);
+                device = Decoder.Decode<DeviceData>(reader, version);
             }
             
             public override void Encode(BinaryWriter writer) {

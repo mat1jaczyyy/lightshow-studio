@@ -9,10 +9,7 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Choke: Device, IChainParent {
-        public delegate void ChokedEventHandler(Choke sender, int index);
-        public static event ChokedEventHandler Choked;
-        
+    public class ChokeData: DeviceData {
         int _target = 1;
         public int Target {
             get => _target;
@@ -20,10 +17,28 @@ namespace Apollo.Devices {
                 if (_target != value && 1 <= value && value <= 16) {
                    _target = value;
 
-                   if (Viewer?.SpecificViewer != null) ((ChokeViewer)Viewer.SpecificViewer).SetTarget(Target);
+                   SpecificViewer<ChokeViewer>(i => i.SetTarget(Target));
                 }
             }
         }
+
+        public ChainData Chain { get; private set; }
+
+        protected override DeviceData CloneSpecific() => new ChokeData(Target, Chain.Clone());
+
+        public ChokeData(int target = 1, ChainData chain = null) {
+            Target = target;
+            Chain = chain?? new ChainData();
+        }
+
+        protected override Device ActivateSpecific(DeviceData data) => new Choke((ChokeData)data);
+    }
+
+    public class Choke: Device, IChainParent {
+        public new ChokeData Data => (ChokeData)Data;
+
+        public delegate void ChokedEventHandler(Choke sender, int index);
+        public static event ChokedEventHandler Choked;
 
         Chain _chain;
         public Chain Chain {
@@ -49,7 +64,7 @@ namespace Apollo.Devices {
         ConcurrentDictionary<(Launchpad, int, int), Signal> signals = new();
 
         void HandleChoke(Choke sender, int index) {
-            if (Target == index && sender != this && !choked) {
+            if (Data.Target == index && sender != this && !choked) {
                 choked = true;
                 Chain.MIDIEnter(StopSignal.Instance);
                 
@@ -61,15 +76,8 @@ namespace Apollo.Devices {
             }
         }
 
-        public override Device Clone() => new Choke(Target, Chain.Clone()) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Choke(int target = 1, Chain chain = null): base("choke") {
-            Target = target;
-            Chain = chain?? new Chain();
-
+        public Choke(ChokeData data): base(data, "choke") {
+            Chain = data.Chain.Activate();
             Choked += HandleChoke;
         }
 
@@ -92,7 +100,7 @@ namespace Apollo.Devices {
                 IEnumerable<Signal> m = n.SkipWhile(i => !i.Color.Lit);
 
                 if (m.Any()) {
-                    Choked?.Invoke(this, Target);
+                    Choked?.Invoke(this, Data.Target);
                     choked = false;
 
                     o = m;
@@ -118,10 +126,8 @@ namespace Apollo.Devices {
             base.Dispose();
         }
         
-        void SetTarget(int target) => Target = target;
-        
         public class TargetUndoEntry: SimplePathUndoEntry<Choke, int> {
-            protected override void Action(Choke item, int element) => item.SetTarget(element);
+            protected override void Action(Choke item, int element) => item.Data.Target = element;
 
             public TargetUndoEntry(Choke choke, int u, int r)
             : base($"Choke Target Changed to {r}", choke, u, r) {}

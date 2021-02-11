@@ -126,8 +126,8 @@ namespace Apollo.Binary {
                     .MakeGenericMethod(EnumerableType)
                     .Invoke(null, new object[] { writer, o });
 
-            } else if (typeof(Device).IsAssignableFrom(type)) 
-                Encode(writer, (Device)o);
+            } else if (typeof(DeviceData).IsAssignableFrom(type)) 
+                Encode(writer, (DeviceData)o);
                 
             else {
                 MethodInfo encoder = typeof(BinaryWriter).GetMethods()
@@ -156,7 +156,7 @@ namespace Apollo.Binary {
             
             writer.Write(o.Contents.Count);
             for (int i = 0; i < o.Contents.Count; i++)
-                if (o.Contents[i] is Device d) Encode(writer, d);
+                if (o.Contents[i] is Device d) Encode(writer, d.Data);
                 else Encode(writer, (dynamic)o.Contents[i]);
         }
 
@@ -182,19 +182,19 @@ namespace Apollo.Binary {
         public static void Encode(BinaryWriter writer, Track o) {
             EncodeID(writer, typeof(Track));
 
-            Encode(writer, o.Chain);
+            Encode(writer, o.Chain.Data);
             Encode(writer, o.Launchpad);
             
             writer.Write(o.Name);
             writer.Write(o.Enabled);
         }
 
-        public static void Encode(BinaryWriter writer, Chain o) {
-            EncodeID(writer, typeof(Chain));
+        public static void Encode(BinaryWriter writer, ChainData o) {
+            EncodeID(writer, typeof(ChainData));
 
-            writer.Write(o.Count);
-            for (int i = 0; i < o.Count; i++)
-                Encode(writer, o[i]);
+            writer.Write(o.Devices.Count);
+            for (int i = 0; i < o.Devices.Count; i++)
+                Encode(writer, o.Devices[i]);
             
             writer.Write(o.Name);
             writer.Write(o.Enabled);
@@ -203,8 +203,8 @@ namespace Apollo.Binary {
                 writer.Write(o.SecretMultiFilter[i]);
         }
 
-        public static void Encode(BinaryWriter writer, Device o) {
-            EncodeID(writer, typeof(Device));
+        public static void Encode(BinaryWriter writer, DeviceData o) {
+            EncodeID(writer, typeof(DeviceData));
 
             writer.Write(o.Collapsed);
             writer.Write(o.Enabled);

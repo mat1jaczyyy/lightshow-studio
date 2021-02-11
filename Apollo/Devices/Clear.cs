@@ -24,12 +24,12 @@ namespace Apollo.Devices {
         protected override DeviceData CloneSpecific() => new ClearData(Mode);
 
         public ClearData(ClearType mode = ClearType.Lights) => Mode = mode;
+
+        protected override Device ActivateSpecific(DeviceData data) => new Clear((ClearData)data);
     }
 
     public class Clear: Device {
         public new ClearData Data => (ClearData)Data;
-
-        public override Device Clone() => new Clear((ClearData)Data.Clone());
         
         public Clear(ClearData data): base(data, "clear") {}
 
