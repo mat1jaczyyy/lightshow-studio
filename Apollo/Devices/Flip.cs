@@ -10,14 +10,16 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Flip: Device {
+    public class FlipData: DeviceData {
+        FlipViewer Viewer => Instance?.SpecificViewer<FlipViewer>();
+
         FlipType _mode;
         public FlipType Mode {
             get => _mode;
             set {
                 _mode = value;
 
-                if (Viewer?.SpecificViewer != null) ((FlipViewer)Viewer.SpecificViewer).SetMode(Mode);
+                Viewer?.SetMode(Mode);
             }
         }
 
@@ -27,37 +29,44 @@ namespace Apollo.Devices {
             set {
                 _bypass = value;
                 
-                if (Viewer?.SpecificViewer != null) ((FlipViewer)Viewer.SpecificViewer).SetBypass(Bypass);
+                Viewer?.SetBypass(Bypass);
             }
         }
 
-        public override Device Clone() => new Flip(Mode, Bypass) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Flip(FlipType mode = FlipType.Horizontal, bool bypass = false): base("flip") {
+        public FlipData(FlipType mode = FlipType.Horizontal, bool bypass = false) {
             Mode = mode;
             Bypass = bypass;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new FlipData(Mode, Bypass);
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Flip((FlipData)data);
+    }
+
+    public class Flip: Device {
+        public new FlipData Data => (FlipData)Data;
+
+        public Flip(FlipData data): base(data, "flip") {}
+
         public override void MIDIProcess(List<Signal> n)
-            => InvokeExit((Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {
+            => InvokeExit((Data.Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {
                 if (i.Index == 100) 
-                    return Bypass? Enumerable.Empty<Signal>() : new [] {i};
+                    return Data.Bypass? Enumerable.Empty<Signal>() : new [] {i};
                     
                 int x = i.Index % 10;
                 int y = i.Index / 10;
 
-                if (Mode == FlipType.Horizontal) x = 9 - x;
-                else if (Mode == FlipType.Vertical) y = 9 - y;
+                if (Data.Mode == FlipType.Horizontal) x = 9 - x;
+                else if (Data.Mode == FlipType.Vertical) y = 9 - y;
 
-                else if (Mode == FlipType.Diagonal1) {
+                else if (Data.Mode == FlipType.Diagonal1) {
                     int temp = x;
                     x = y;
                     y = temp;
                 
-                } else if (Mode == FlipType.Diagonal2) {
+                } else if (Data.Mode == FlipType.Diagonal2) {
                     x = 9 - x;
                     y = 9 - y;
 
@@ -71,7 +80,7 @@ namespace Apollo.Devices {
             })).ToList());
         
         public class ModeUndoEntry: EnumSimplePathUndoEntry<Flip, FlipType> {
-            protected override void Action(Flip item, FlipType element) => item.Mode = element;
+            protected override void Action(Flip item, FlipType element) => item.Data.Mode = element;
             
             public ModeUndoEntry(Flip flip, FlipType u, FlipType r, IEnumerable source)
             : base("Flip Orientation", flip, u, r, source) {}
@@ -81,7 +90,7 @@ namespace Apollo.Devices {
         }
         
         public class BypassUndoEntry: SimplePathUndoEntry<Flip, bool> {
-            protected override void Action(Flip item, bool element) => item.Bypass = element;
+            protected override void Action(Flip item, bool element) => item.Data.Bypass = element;
             
             public BypassUndoEntry(Flip flip, bool u, bool r)
             : base($"Flip Bypass Changed to {(r? "Enabled" : "Disabled")}", flip, u, r) {}

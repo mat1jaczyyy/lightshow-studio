@@ -313,8 +313,8 @@ namespace Apollo.Binary {
                 writer.Write(o.Expanded.Value);
         }
 
-        public static void Encode(BinaryWriter writer, Flip o) {
-            EncodeID(writer, typeof(Flip));
+        public static void Encode(BinaryWriter writer, FlipData o) {
+            EncodeID(writer, typeof(FlipData));
 
             writer.Write((int)o.Mode);
             writer.Write(o.Bypass);
