@@ -236,21 +236,21 @@ namespace Apollo.Binary {
                 writer.Write(o.Expanded.Value);
         }
 
-        public static void Encode(BinaryWriter writer, Choke o) {
-            EncodeID(writer, typeof(Choke));
+        public static void Encode(BinaryWriter writer, ChokeData o) {
+            EncodeID(writer, typeof(ChokeData));
 
             writer.Write(o.Target);
             Encode(writer, o.Chain);
         }
 
-        public static void Encode(BinaryWriter writer, Clear o) {
-            EncodeID(writer, typeof(Clear));
+        public static void Encode(BinaryWriter writer, ClearData o) {
+            EncodeID(writer, typeof(ClearData));
 
             writer.Write((int)o.Mode);
         }
         
-        public static void Encode(BinaryWriter writer, ColorFilter o) {
-            EncodeID(writer, typeof(ColorFilter));
+        public static void Encode(BinaryWriter writer, ColorFilterData o) {
+            EncodeID(writer, typeof(ColorFilterData));
 
             writer.Write(o.Hue);
             writer.Write(o.Saturation);
@@ -261,8 +261,8 @@ namespace Apollo.Binary {
             writer.Write(o.ValueTolerance);
         }
 
-        public static void Encode(BinaryWriter writer, Copy o) {
-            EncodeID(writer, typeof(Copy));
+        public static void Encode(BinaryWriter writer, CopyData o) {
+            EncodeID(writer, typeof(CopyData));
 
             Encode(writer, o.Time);
             writer.Write(o.Gate);
@@ -281,7 +281,7 @@ namespace Apollo.Binary {
                 Encode(writer, o.Offsets[i]);
 
             for (int i = 0; i < o.Offsets.Count; i++)
-                writer.Write(o.GetAngle(i));
+                writer.Write(o.Angles[i]);
         }
 
         public static void Encode(BinaryWriter writer, Delay o) {
@@ -352,7 +352,7 @@ namespace Apollo.Binary {
             writer.Write(o.Range);
         }
         
-        public static void Encode(BinaryWriter writer, Loop o){
+        public static void Encode(BinaryWriter writer, Loop o) {
             EncodeID(writer, typeof(Loop));
             
             Encode(writer, o.Rate);
@@ -486,14 +486,14 @@ namespace Apollo.Binary {
                 Encode(writer, o.Screen[i]);
         }
 
-        public static void Encode(BinaryWriter writer, Length o) {
-            EncodeID(writer, typeof(Length));
+        public static void Encode(BinaryWriter writer, LengthData o) {
+            EncodeID(writer, typeof(LengthData));
 
             writer.Write(o.Step);
         }
 
-        public static void Encode(BinaryWriter writer, Offset o) {
-            EncodeID(writer, typeof(Offset));
+        public static void Encode(BinaryWriter writer, OffsetData o) {
+            EncodeID(writer, typeof(OffsetData));
 
             writer.Write(o.X);
             writer.Write(o.Y);
@@ -503,8 +503,8 @@ namespace Apollo.Binary {
             writer.Write(o.AbsoluteY);
         }
 
-        public static void Encode(BinaryWriter writer, Time o) {
-            EncodeID(writer, typeof(Time));
+        public static void Encode(BinaryWriter writer, TimeData o) {
+            EncodeID(writer, typeof(TimeData));
 
             writer.Write(o.Mode);
             Encode(writer, o.Length);

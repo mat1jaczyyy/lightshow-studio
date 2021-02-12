@@ -18,11 +18,6 @@ namespace Apollo.Elements {
     public abstract class DeviceData {
         public Device Instance = null;
 
-        protected void SpecificViewer<T>(Action<T> func) where T: IControl {
-            if (Instance?.Viewer?.SpecificViewer is T viewer)
-                func?.Invoke(viewer);
-        }
-
         public bool Collapsed = false;
         
         bool _enabled = true;
@@ -54,6 +49,9 @@ namespace Apollo.Elements {
 
     public abstract class Device: SignalReceiver, ISelect, IMutable {
         public readonly DeviceData Data;
+
+        public T SpecificViewer<T>() where T: IControl
+            => (Viewer?.SpecificViewer is T viewer)? viewer : default(T);
 
         public readonly string DeviceIdentifier;
         public readonly string Name;
@@ -133,7 +131,7 @@ namespace Apollo.Elements {
             InvokeExit(n);
         }
 
-        protected void Stop() {
+        public void Stop() {
             jobs.Clear();
             Stopped();
         }

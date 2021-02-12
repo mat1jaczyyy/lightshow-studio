@@ -11,21 +11,26 @@ using Apollo.Undo;
 
 namespace Apollo.Devices {
     public class ClearData: DeviceData {
+        ClearViewer Viewer => Instance?.SpecificViewer<ClearViewer>();
+
         ClearType _mode;
         public ClearType Mode {
             get => _mode;
             set {
                 _mode = value;
 
-                SpecificViewer<ClearViewer>(i => i.SetMode(Mode));
+                Viewer?.SetMode(Mode);
             }
         }
 
-        protected override DeviceData CloneSpecific() => new ClearData(Mode);
+        public ClearData(ClearType mode = ClearType.Lights)
+            => Mode = mode;
 
-        public ClearData(ClearType mode = ClearType.Lights) => Mode = mode;
+        protected override DeviceData CloneSpecific()
+            => new ClearData(Mode);
 
-        protected override Device ActivateSpecific(DeviceData data) => new Clear((ClearData)data);
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Clear((ClearData)data);
     }
 
     public class Clear: Device {

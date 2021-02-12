@@ -64,22 +64,22 @@ namespace Apollo.DeviceViewers {
 
             _copy = copy;
 
-            Rate.UsingSteps = _copy.Time.Mode;
+            Rate.UsingSteps = _copy.Time.Data.Mode;
             Rate.Length = _copy.Time.Length;
-            Rate.RawValue = _copy.Time.Free;
+            Rate.RawValue = _copy.Time.Data.Free;
 
-            Gate.RawValue = _copy.Gate * 100;
-            Pinch.RawValue = _copy.Pinch;
-            Pinch.IsBilateral = _copy.Bilateral;
+            Gate.RawValue = _copy.Data.Gate * 100;
+            Pinch.RawValue = _copy.Data.Pinch;
+            Pinch.IsBilateral = _copy.Data.Bilateral;
 
-            Reverse.IsChecked = _copy.Reverse;
-            Infinite.IsChecked = _copy.Infinite;
+            Reverse.IsChecked = _copy.Data.Reverse;
+            Infinite.IsChecked = _copy.Data.Infinite;
 
-            GridMode.SelectedIndex = (int)_copy.GridMode;
+            GridMode.SelectedIndex = (int)_copy.Data.GridMode;
             
-            SetCopyMode(_copy.CopyMode);
+            SetCopyMode(_copy.Data.CopyMode);
 
-            Wrap.IsChecked = _copy.Wrap;
+            Wrap.IsChecked = _copy.Data.Wrap;
 
             for (int i = 0; i < _copy.Offsets.Count; i++)
                 Contents_Insert(i, _copy.Offsets[i], _copy.GetAngle(i));
@@ -134,10 +134,10 @@ namespace Apollo.DeviceViewers {
         void CopyMode_Changed(object sender, SelectionChangedEventArgs e) {
             CopyType selected = (CopyType)CopyMode.SelectedIndex;
 
-            if (_copy.CopyMode != selected)
+            if (_copy.Data.CopyMode != selected)
                 Program.Project.Undo.AddAndExecute(new Copy.CopyModeUndoEntry(
                     _copy,
-                    _copy.CopyMode,
+                    _copy.Data.CopyMode,
                     selected,
                     CopyMode.Items
                 ));
@@ -156,10 +156,10 @@ namespace Apollo.DeviceViewers {
         void GridMode_Changed(object sender, SelectionChangedEventArgs e) {
             GridType selected = (GridType)GridMode.SelectedIndex;
 
-            if (_copy.GridMode != selected) 
+            if (_copy.Data.GridMode != selected) 
                 Program.Project.Undo.AddAndExecute(new Copy.GridModeUndoEntry(
                     _copy, 
-                    _copy.GridMode, 
+                    _copy.Data.GridMode, 
                     selected,
                     GridMode.Items
                 ));
@@ -192,10 +192,10 @@ namespace Apollo.DeviceViewers {
         void Reverse_Changed(object sender, RoutedEventArgs e) {
             bool value = Reverse.IsChecked.Value;
 
-            if (_copy.Reverse != value)
+            if (_copy.Data.Reverse != value)
                 Program.Project.Undo.AddAndExecute(new Copy.ReverseUndoEntry(
                     _copy, 
-                    _copy.Reverse, 
+                    _copy.Data.Reverse, 
                     value
                 ));
         }
@@ -205,10 +205,10 @@ namespace Apollo.DeviceViewers {
         void Infinite_Changed(object sender, RoutedEventArgs e) {
             bool value = Infinite.IsChecked.Value;
 
-            if (_copy.Infinite != value)
+            if (_copy.Data.Infinite != value)
                 Program.Project.Undo.AddAndExecute(new Copy.InfiniteUndoEntry(
                     _copy, 
-                    _copy.Infinite, 
+                    _copy.Data.Infinite, 
                     value
                 ));
         }
@@ -218,10 +218,10 @@ namespace Apollo.DeviceViewers {
         void Wrap_Changed(object sender, RoutedEventArgs e) {
             bool value = Wrap.IsChecked.Value;
 
-            if (_copy.Wrap != value)
+            if (_copy.Data.Wrap != value)
                 Program.Project.Undo.AddAndExecute(new Copy.WrapUndoEntry(
                     _copy, 
-                    _copy.Wrap, 
+                    _copy.Data.Wrap, 
                     value
                 ));
         }
@@ -237,7 +237,7 @@ namespace Apollo.DeviceViewers {
 
         void Offset_Remove(int index) => Program.Project.Undo.AddAndExecute(new Copy.OffsetRemoveUndoEntry(
             _copy, 
-            _copy.Offsets[index].Clone(), 
+            _copy.Offsets[index], 
             _copy.GetAngle(index),
             index
         ));

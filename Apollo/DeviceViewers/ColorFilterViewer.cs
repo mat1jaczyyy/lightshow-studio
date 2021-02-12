@@ -35,13 +35,13 @@ namespace Apollo.DeviceViewers {
 
             _filter = filter;
 
-            Hue.RawValue = _filter.Hue;
-            Saturation.RawValue = _filter.Saturation * 100;
-            Value.RawValue = _filter.Value * 100;
+            Hue.RawValue = _filter.Data.Hue;
+            Saturation.RawValue = _filter.Data.Saturation * 100;
+            Value.RawValue = _filter.Data.Value * 100;
             
-            HueTolerance.RawValue = _filter.HueTolerance * 100;
-            SaturationTolerance.RawValue = _filter.SaturationTolerance * 100;
-            ValueTolerance.RawValue = _filter.ValueTolerance * 100;
+            HueTolerance.RawValue = _filter.Data.HueTolerance * 100;
+            SaturationTolerance.RawValue = _filter.Data.SaturationTolerance * 100;
+            ValueTolerance.RawValue = _filter.Data.ValueTolerance * 100;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _filter = null;

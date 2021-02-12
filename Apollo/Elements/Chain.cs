@@ -58,10 +58,6 @@ namespace Apollo.Elements {
             }
         }
 
-        public ChainData Clone() => new ChainData(Devices.Select(i => i.Clone()).ToList(), Name, SecretMultiFilter.ToArray()) {
-            Enabled = Enabled
-        };
-
         public ChainData(List<DeviceData> init = null, string name = "Chain #", bool[] filter = null) {
             Devices = init?? new List<DeviceData>();
             Name = name;
@@ -70,7 +66,13 @@ namespace Apollo.Elements {
             _filter = filter;
         }
 
-        public Chain Activate() => new Chain(Clone());
+        public ChainData Clone()
+            => new ChainData(Devices.Select(i => i.Clone()).ToList(), Name, SecretMultiFilter.ToArray()) {
+                Enabled = Enabled
+            };
+
+        public Chain Activate()
+            => new Chain(Clone());
     }
 
     public class Chain: SignalReceiver, ISelect, ISelectParent, IMutable, IName {
@@ -90,7 +92,7 @@ namespace Apollo.Elements {
 
         public void IInsert(int index, ISelect item) => Insert(index, (Device)item);
         
-        public ISelect IClone() => (ISelect)Clone();
+        public ISelect IClone() => (ISelect)Data.Activate();
 
         public ISelectParentViewer IViewer {
             get => Viewer;

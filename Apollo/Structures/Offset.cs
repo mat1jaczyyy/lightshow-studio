@@ -1,9 +1,8 @@
 using Apollo.Enums;
 
 namespace Apollo.Structures {
-    public class Offset {
-        public delegate void ChangedEventHandler(Offset sender);
-        public event ChangedEventHandler Changed;
+    public class OffsetData {
+        public Offset Instance;
 
         int _x = 0;
         public int X {
@@ -11,7 +10,7 @@ namespace Apollo.Structures {
             set {
                 if (-9 <= value && value <= 9 && _x != value) {
                     _x = value;
-                    Changed?.Invoke(this);
+                    Instance?.InvokeChanged();
                 }
             }
         }
@@ -22,7 +21,7 @@ namespace Apollo.Structures {
             set {
                 if (-9 <= value && value <= 9 && _y != value) {
                     _y = value;
-                    Changed?.Invoke(this);
+                    Instance?.InvokeChanged();
                 }
             }
         }
@@ -33,7 +32,7 @@ namespace Apollo.Structures {
             set {
                 if (_absolute != value) {
                     _absolute = value;
-                    Changed?.Invoke(this);
+                    Instance?.InvokeChanged();
                 }
             }
         }
@@ -44,7 +43,7 @@ namespace Apollo.Structures {
             set {
                 if (0 <= value && value <= 9 && _ax != value) {
                     _ax = value;
-                    Changed?.Invoke(this);
+                    Instance?.InvokeChanged();
                 }
             }
         }
@@ -55,20 +54,36 @@ namespace Apollo.Structures {
             set {
                 if (0 <= value && value <= 9 && _ay != value) {
                     _ay = value;
-                    Changed?.Invoke(this);
+                    Instance?.InvokeChanged();
                 }
             }
         }
-        
-        public Offset Clone() => new Offset(X, Y, IsAbsolute, AbsoluteX, AbsoluteY);
 
-        public Offset(int x = 0, int y = 0, bool absolute = false, int ax = 5, int ay = 5) {
+        public OffsetData(int x = 0, int y = 0, bool absolute = false, int ax = 5, int ay = 5) {
             X = x;
             Y = y;
             IsAbsolute = absolute;
             AbsoluteX = ax;
             AbsoluteY = ay;
         }
+
+        public OffsetData Clone()
+            => new OffsetData(X, Y, IsAbsolute, AbsoluteX, AbsoluteY);
+
+        public Offset Activate()
+            => new Offset(Clone());
+    }
+
+    public class Offset {
+        public readonly OffsetData Data;
+
+        public delegate void ChangedEventHandler(Offset sender);
+        public event ChangedEventHandler Changed;
+
+        public void InvokeChanged() => Changed?.Invoke(this);
+
+        public Offset(OffsetData data)
+            => Data = data;
 
         public static bool Validate(int x, int y, GridType gridMode, bool wrap, out int result) {
             if (wrap) {
@@ -95,9 +110,9 @@ namespace Apollo.Structures {
         }
 
         public bool Apply(int index, GridType gridMode, bool wrap, out int x, out int y, out int result) {
-            if (IsAbsolute) {
-                x = AbsoluteX;
-                y = AbsoluteY;
+            if (Data.IsAbsolute) {
+                x = Data.AbsoluteX;
+                y = Data.AbsoluteY;
                 return Validate(x, y, gridMode, wrap, out result);
             }
 
@@ -109,8 +124,8 @@ namespace Apollo.Structures {
                 return false;
             }
 
-            x += X;
-            y += Y;
+            x += Data.X;
+            y += Data.Y;
 
             return Validate(x, y, gridMode, wrap, out result);
         }

@@ -270,7 +270,7 @@ namespace Apollo.Components {
             }
         }
 
-        Length _length = new Length();
+        Length _length = null;
         public Length Length {
             get => _length;
             set {
@@ -344,7 +344,7 @@ namespace Apollo.Components {
 
         protected void DrawArcSteps() {
             if (_usingSteps) {
-                DrawArc(Arc, _length.Step / 9.0, false, "ThemeExtraBrush");
+                DrawArc(Arc, Length.Data.Step / 9.0, false, "ThemeExtraBrush");
                 if (Parent is Control control) ToolTip.SetTip(control, null);
             }
         }
@@ -387,7 +387,7 @@ namespace Apollo.Components {
                 if (e.KeyModifiers.HasFlag(App.ControlKey)) {
                     Started?.Invoke();
 
-                    if (_usingSteps) Length.Step = 5;
+                    if (_usingSteps) Length.Data.Step = 5;
                     else RawValue = Default;
                     return;
                 }
@@ -401,7 +401,7 @@ namespace Apollo.Components {
                 e.Pointer.Capture(ArcCanvas);
 
                 lastY = e.GetPosition(ArcCanvas).Y;
-                if (_usingSteps) oldStep = Length.Step;
+                if (_usingSteps) oldStep = Length.Data.Step;
                 else oldValue = RawValue;
 
                 Started?.Invoke();
@@ -419,7 +419,7 @@ namespace Apollo.Components {
                 mouseHeld = false;
                 e.Pointer.Capture(null);
 
-                if (_usingSteps) StepChanged?.Invoke(Length.Step, oldStep);
+                if (_usingSteps) StepChanged?.Invoke(Length.Data.Step, oldStep);
                 else ValueChanged?.Invoke(this, RawValue, oldValue);
 
                 ArcCanvas.Cursor = new Cursor(StandardCursorType.Hand);
@@ -439,9 +439,9 @@ namespace Apollo.Components {
 
                 if (_usingSteps) {
                     if (Math.Abs(Y - lastY) >= 8) {
-                        _length.Step -= (int)((Y - lastY) / 8);
+                        Length.Data.Step -= (int)((Y - lastY) / 8);
 
-                        StepChanged?.Invoke(_length.Step, null);
+                        StepChanged?.Invoke(Length.Data.Step, null);
 
                         DrawArcSteps();
                         lastY = Y;

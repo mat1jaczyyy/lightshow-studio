@@ -10,6 +10,8 @@ using Apollo.Undo;
 
 namespace Apollo.Devices {
     public class ChokeData: DeviceData {
+        ChokeViewer Viewer => Instance?.SpecificViewer<ChokeViewer>();
+
         int _target = 1;
         public int Target {
             get => _target;
@@ -17,21 +19,23 @@ namespace Apollo.Devices {
                 if (_target != value && 1 <= value && value <= 16) {
                    _target = value;
 
-                   SpecificViewer<ChokeViewer>(i => i.SetTarget(Target));
+                   Viewer?.SetTarget(Target);
                 }
             }
         }
 
         public ChainData Chain { get; private set; }
 
-        protected override DeviceData CloneSpecific() => new ChokeData(Target, Chain.Clone());
-
         public ChokeData(int target = 1, ChainData chain = null) {
             Target = target;
             Chain = chain?? new ChainData();
         }
 
-        protected override Device ActivateSpecific(DeviceData data) => new Choke((ChokeData)data);
+        protected override DeviceData CloneSpecific()
+            => new ChokeData(Target, Chain.Clone());
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Choke((ChokeData)data);
     }
 
     public class Choke: Device, IChainParent {
@@ -40,25 +44,7 @@ namespace Apollo.Devices {
         public delegate void ChokedEventHandler(Choke sender, int index);
         public static event ChokedEventHandler Choked;
 
-        Chain _chain;
-        public Chain Chain {
-            get => _chain;
-            set {
-                if (_chain != null) {
-                    Chain.Parent = null;
-                    Chain.ParentIndex = null;
-                    Chain.MIDIExit = null;
-                }
-
-                _chain = value;
-
-                if (_chain != null) {
-                    Chain.Parent = this;
-                    Chain.ParentIndex = 0;
-                    Chain.MIDIExit = ChainExit;
-                }
-            }
-        }
+        public readonly Chain Chain;
 
         bool choked = true;
         ConcurrentDictionary<(Launchpad, int, int), Signal> signals = new();
@@ -78,6 +64,11 @@ namespace Apollo.Devices {
 
         public Choke(ChokeData data): base(data, "choke") {
             Chain = data.Chain.Activate();
+
+            Chain.Parent = this;
+            Chain.ParentIndex = 0;
+            Chain.MIDIExit = ChainExit;
+
             Choked += HandleChoke;
         }
 

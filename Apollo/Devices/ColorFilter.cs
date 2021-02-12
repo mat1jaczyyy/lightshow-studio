@@ -9,7 +9,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class ColorFilter: Device {
+    public class ColorFilterData: DeviceData {
+        ColorFilterViewer Viewer => Instance?.SpecificViewer<ColorFilterViewer>();
+
         double _h, _s, _v, _th, _ts, _tv;
 
         public double Hue {
@@ -18,7 +20,7 @@ namespace Apollo.Devices {
                 if (-180 <= value && value <= 180 && _h != value) {
                     _h = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetHue(Hue);
+                    Viewer?.SetHue(Hue);
                 }
             }
         }
@@ -29,7 +31,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _s != value) {
                     _s = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetSaturation(Saturation);
+                    Viewer?.SetSaturation(Saturation);
                 }
             }
         }
@@ -40,7 +42,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _v != value) {
                     _v = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetValue(Value);
+                    Viewer?.SetValue(Value);
                 }
             }
         }
@@ -51,7 +53,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _th != value) {
                     _th = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetHueTolerance(HueTolerance);
+                    Viewer?.SetHueTolerance(HueTolerance);
                 }
             }
         }
@@ -62,7 +64,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _ts != value) {
                     _ts = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetSaturationTolerance(SaturationTolerance);
+                    Viewer?.SetSaturationTolerance(SaturationTolerance);
                 }
             }
         }
@@ -73,17 +75,12 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _tv != value) {
                     _tv = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ColorFilterViewer)Viewer.SpecificViewer).SetValueTolerance(ValueTolerance);
+                    Viewer?.SetValueTolerance(ValueTolerance);
                 }
             }
         }
 
-        public override Device Clone() => new ColorFilter(Hue, Saturation, Value, HueTolerance, SaturationTolerance, ValueTolerance) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public ColorFilter(double hue = 0, double saturation = 1, double value = 1, double hue_t = 0.05, double saturation_t = 0.05, double value_t = 0.05): base("colorfilter", "Color Filter") {
+        public ColorFilterData(double hue = 0, double saturation = 1, double value = 1, double hue_t = 0.05, double saturation_t = 0.05, double value_t = 0.05) {
             Hue = hue;
             Saturation = saturation;
             Value = value;
@@ -93,19 +90,31 @@ namespace Apollo.Devices {
             ValueTolerance = value_t;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new ColorFilterData(Hue, Saturation, Value, HueTolerance, SaturationTolerance, ValueTolerance);
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new ColorFilter((ColorFilterData)data);
+    }
+
+    public class ColorFilter: Device {
+        public new ColorFilterData Data => (ColorFilterData)Data;
+
+        public ColorFilter(ColorFilterData data): base(data, "colorfilter", "Color Filter") {}
+
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit(n.Where(i => {
                 if (!i.Color.Lit) return true;
 
                 (double hue, double saturation, double value) = i.Color.ToHSV();
 
-                return (180 - Math.Abs(Math.Abs(hue - (Hue + 360) % 360) - 180)) / 180 <= HueTolerance &&
-                        Math.Abs(saturation - Saturation) <= SaturationTolerance &&
-                        Math.Abs(value - Value) <= ValueTolerance;
+                return (180 - Math.Abs(Math.Abs(hue - (Data.Hue + 360) % 360) - 180)) / 180 <= Data.HueTolerance &&
+                        Math.Abs(saturation - Data.Saturation) <= Data.SaturationTolerance &&
+                        Math.Abs(value - Data.Value) <= Data.ValueTolerance;
             }).ToList());
 
         public class HueUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.Hue = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.Hue = element;
             
             public HueUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Hue Changed to {r}°", colorFilter, u, r) {}
@@ -115,7 +124,7 @@ namespace Apollo.Devices {
         }
         
         public class SaturationUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.Saturation = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.Saturation = element;
             
             public SaturationUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Sat Changed to {r}%", colorFilter, u / 100, r / 100) {}
@@ -125,7 +134,7 @@ namespace Apollo.Devices {
         }
         
         public class ValueUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.Value = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.Value = element;
             
             public ValueUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Value Changed to {r}%", colorFilter, u / 100, r / 100) {}
@@ -135,7 +144,7 @@ namespace Apollo.Devices {
         }
         
         public class HueToleranceUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.HueTolerance = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.HueTolerance = element;
             
             public HueToleranceUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Hue Tol Changed to {r}%", colorFilter, u / 100, r / 100) {}
@@ -145,7 +154,7 @@ namespace Apollo.Devices {
         }
         
         public class SaturationToleranceUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.SaturationTolerance = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.SaturationTolerance = element;
             
             public SaturationToleranceUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Sat Tol Changed to {r}%", colorFilter, u / 100, r / 100) {}
@@ -155,7 +164,7 @@ namespace Apollo.Devices {
         }
         
         public class ValueToleranceUndoEntry: SimplePathUndoEntry<ColorFilter, double> {
-            protected override void Action(ColorFilter item, double element) => item.ValueTolerance = element;
+            protected override void Action(ColorFilter item, double element) => item.Data.ValueTolerance = element;
             
             public ValueToleranceUndoEntry(ColorFilter colorFilter, double u, double r) 
             : base($"Color Filter Value Tol Changed to {r}%", colorFilter, u / 100, r / 100) {}

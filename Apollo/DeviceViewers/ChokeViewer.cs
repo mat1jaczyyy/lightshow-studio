@@ -30,7 +30,7 @@ namespace Apollo.DeviceViewers {
 
             _choke = choke;
 
-            Target.RawValue = _choke.Target;
+            Target.RawValue = _choke.Data.Target;
 
             parent.Border.CornerRadius = new CornerRadius(5, 0, 0, 5);
             parent.Header.CornerRadius = new CornerRadius(5, 0, 0, 0);

@@ -22,7 +22,7 @@ namespace Apollo.Binary {
             typeof(Launchpad),
 
             typeof(Group),
-            typeof(Copy),
+            typeof(CopyData),
             typeof(Delay),
             typeof(Fade),
             typeof(Flip),
@@ -42,13 +42,13 @@ namespace Apollo.Binary {
 
             typeof(Color),
             typeof(Frame),
-            typeof(Length),
-            typeof(Offset),
-            typeof(Time),
+            typeof(LengthData),
+            typeof(OffsetData),
+            typeof(TimeData),
 
-            typeof(Choke),
-            typeof(ColorFilter),
-            typeof(Clear),
+            typeof(ChokeData),
+            typeof(ColorFilterData),
+            typeof(ClearData),
             typeof(LayerFilter),
             typeof(Loop),
             typeof(Refresh),

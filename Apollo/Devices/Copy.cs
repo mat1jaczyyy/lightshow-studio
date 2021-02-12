@@ -15,77 +15,13 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Copy: Device {
-        Random RNG = new Random();
+    public class CopyData: DeviceData {
+        public CopyViewer Viewer => Instance?.SpecificViewer<CopyViewer>();
         
-        public List<Offset> Offsets;
-        List<int> Angles;
+        public List<OffsetData> Offsets;
+        public List<int> Angles;
 
-        public void Insert(int index, Offset offset = null, int angle = 0) {
-            Offsets.Insert(index, offset?? new Offset());
-            Offsets[index].Changed += OffsetChanged;
-
-            Angles.Insert(index, angle);
-
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).Contents_Insert(index, Offsets[index], Angles[index]);
-        }
-
-        public void Remove(int index) {
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).Contents_Remove(index);
-
-            Offsets[index].Changed -= OffsetChanged;
-            Offsets.RemoveAt(index);
-
-            Angles.RemoveAt(index);
-        }
-
-        void OffsetChanged(Offset sender) {
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetOffset(Offsets.IndexOf(sender), sender);
-        }
-
-        public int GetAngle(int index) => Angles[index];
-        public void SetAngle(int index, int angle) {
-            if (-150 <= angle && angle <= 150 && angle != Angles[index]) {
-                Angles[index] = angle;
-
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetOffsetAngle(index, angle);
-            }
-        }
-
-        Time _time;
-        public Time Time {
-            get => _time;
-            set {
-                if (_time != null) {
-                    _time.FreeChanged -= FreeChanged;
-                    _time.ModeChanged -= ModeChanged;
-                    _time.StepChanged -= StepChanged;
-                }
-
-                _time = value;
-
-                if (_time != null) {
-                    _time.Minimum = 1;
-                    _time.Maximum = 5000;
-
-                    _time.FreeChanged += FreeChanged;
-                    _time.ModeChanged += ModeChanged;
-                    _time.StepChanged += StepChanged;
-                }
-            }
-        }
-
-        void FreeChanged(int value) {
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetRateValue(value);
-        }
-
-        void ModeChanged(bool value) {
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetMode(value);
-        }
-
-        void StepChanged(Length value) {
-            if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetRateStep(value);
-        }
+        public TimeData Time;
 
         double _gate;
         public double Gate {
@@ -94,7 +30,7 @@ namespace Apollo.Devices {
                 if (0.01 <= value && value <= 4) {
                     _gate = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetGate(Gate);
+                    Viewer?.SetGate(Gate);
                 }
             }
         }
@@ -105,7 +41,7 @@ namespace Apollo.Devices {
             set {
                 _wrap = value;
 
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetWrap(Wrap);
+                Viewer?.SetWrap(Wrap);
             }
         }
 
@@ -115,9 +51,9 @@ namespace Apollo.Devices {
             set {
                 _copymode = value;
                 
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetCopyMode(CopyMode);
+                Viewer?.SetCopyMode(CopyMode);
 
-                Stop();
+                Instance?.Stop();
             }
         }
 
@@ -127,7 +63,7 @@ namespace Apollo.Devices {
             set {
                 _gridmode = value;
                 
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetGridMode(GridMode);
+                Viewer?.SetGridMode(GridMode);
             }
         }
         
@@ -138,7 +74,7 @@ namespace Apollo.Devices {
                 if (-2 <= value && value <= 2) {
                     _pinch = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer)?.SetPinch(Pinch);
+                    Viewer?.SetPinch(Pinch);
                 }
             }
         }
@@ -150,7 +86,7 @@ namespace Apollo.Devices {
                 if (value != _bilateral) {
                     _bilateral = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer)?.SetBilateral(Bilateral);
+                    Viewer?.SetBilateral(Bilateral);
                 }
             }
         }
@@ -161,7 +97,7 @@ namespace Apollo.Devices {
             set {
                 _reverse = value;
 
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetReverse(Reverse);
+                Viewer?.SetReverse(Reverse);
             }
         }
         
@@ -171,17 +107,12 @@ namespace Apollo.Devices {
             set {
                 _infinite = value;
 
-                if (Viewer?.SpecificViewer != null) ((CopyViewer)Viewer.SpecificViewer).SetInfinite(Infinite);
+                Viewer?.SetInfinite(Infinite);
             }
         }
 
-        public override Device Clone() => new Copy(_time.Clone(), _gate, Pinch, Bilateral, Reverse, Infinite, CopyMode, GridMode, Wrap, Offsets.Select(i => i.Clone()).ToList(), Angles.ToList()) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Copy(Time time = null, double gate = 1, double pinch = 0, bool bilateral = false, bool reverse = false, bool infinite = false, CopyType copymode = CopyType.Static, GridType gridmode = GridType.Full, bool wrap = false, List<Offset> offsets = null, List<int> angles = null): base("copy") {
-            Time = time?? new Time(free: 500);
+        public CopyData(TimeData time = null, double gate = 1, double pinch = 0, bool bilateral = false, bool reverse = false, bool infinite = false, CopyType copymode = CopyType.Static, GridType gridmode = GridType.Full, bool wrap = false, List<OffsetData> offsets = null, List<int> angles = null) {
+            Time = time?? new TimeData(free: 500);
             Gate = gate;
             Pinch = pinch;
             Bilateral = bilateral;
@@ -193,8 +124,78 @@ namespace Apollo.Devices {
             GridMode = gridmode;
             Wrap = wrap;
 
-            Offsets = offsets?? new List<Offset>();
+            Offsets = offsets?? new List<OffsetData>();
             Angles = angles?? new List<int>();
+        }
+
+        protected override DeviceData CloneSpecific()
+            => new CopyData(Time.Clone(), _gate, Pinch, Bilateral, Reverse, Infinite, CopyMode, GridMode, Wrap, Offsets.Select(i => i.Clone()).ToList(), Angles.ToList());
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Copy((CopyData)data);
+    }
+
+    public class Copy: Device {
+        public new CopyData Data => (CopyData)Data;
+
+        readonly Random RNG = new Random();
+
+        public List<Offset> Offsets;
+
+        public void Insert(int index, OffsetData offset = null, int angle = 0) {
+            Data.Offsets.Insert(index, offset?? new OffsetData());
+            Offsets.Insert(index, Data.Offsets[index].Activate());
+            Offsets[index].Changed += OffsetChanged;
+            
+            Data.Angles.Insert(index, Math.Clamp(angle, -150, 150));
+
+            Data.Viewer?.Contents_Insert(index, Offsets[index], Data.Angles[index]);
+        }
+
+        public void Remove(int index) {
+            Data.Viewer?.Contents_Remove(index);
+
+            Offsets[index].Changed -= OffsetChanged;
+            Offsets.RemoveAt(index);
+            Data.Offsets.RemoveAt(index);
+
+            Data.Angles.RemoveAt(index);
+        }
+
+        void OffsetChanged(Offset sender)
+            => Data.Viewer?.SetOffset(Offsets.IndexOf(sender), sender);
+
+        public int GetAngle(int index) => Data.Angles[index];
+        public void SetAngle(int index, int angle) {
+            if (-150 <= angle && angle <= 150 && angle != Data.Angles[index]) {
+                Data.Angles[index] = angle;
+
+                Data.Viewer?.SetOffsetAngle(index, angle);
+            }
+        }
+
+        public readonly Time Time;
+
+        void FreeChanged(int value)
+            => Data.Viewer?.SetRateValue(value);
+
+        void ModeChanged(bool value)
+            => Data.Viewer?.SetMode(value);
+
+        void StepChanged(Length value)
+            => Data.Viewer?.SetRateStep(value);
+
+        public Copy(CopyData data): base(data, "copy") {
+            Offsets = Data.Offsets.Select(i => i.Activate()).ToList();
+
+            Time = Data.Time.Activate();
+
+            Time.Minimum = 1;
+            Time.Maximum = 5000;
+
+            Time.FreeChanged += FreeChanged;
+            Time.ModeChanged += ModeChanged;
+            Time.StepChanged += StepChanged;
 
             foreach (Offset offset in Offsets)
                 offset.Changed += OffsetChanged;
@@ -265,6 +266,8 @@ namespace Apollo.Devices {
             if (output) InvokeExit(data);
         }
 
+        double RealTime => Time * Data.Gate;
+
         IEnumerable<Signal> CopyCalc(Signal s, bool output = true) {
             int px = s.Index % 10;
             int py = s.Index / 10;
@@ -272,11 +275,11 @@ namespace Apollo.Devices {
             List<int> validOffsets = new() {s.Index};
 
             for (int i = 0; i < Offsets.Count; i++) {
-                if (Offsets[i].Apply(s.Index, GridMode, Wrap, out int _x, out int _y, out int result) && CopyMode != CopyType.Interpolate)
+                if (Offsets[i].Apply(s.Index, Data.GridMode, Data.Wrap, out int _x, out int _y, out int result) && Data.CopyMode != CopyType.Interpolate)
                     validOffsets.Add(result);
 
-                if (CopyMode == CopyType.Interpolate) {
-                    double angle = Angles[i] / 90.0 * Math.PI;
+                if (Data.CopyMode == CopyType.Interpolate) {
+                    double angle = Data.Angles[i] / 90.0 * Math.PI;
                     
                     double x = _x;
                     double y = _y;
@@ -333,7 +336,7 @@ namespace Apollo.Devices {
 
                         if (Math.Pow(doublepoint.X - point.X, 2.16) + Math.Pow(doublepoint.Y - point.Y, 2.16) > .25) continue;
 
-                        bool valid = Offset.Validate(point.X, point.Y, GridMode, Wrap, out int iresult);
+                        bool valid = Offset.Validate(point.X, point.Y, Data.GridMode, Data.Wrap, out int iresult);
 
                         if (iresult != validOffsets.Last())
                             validOffsets.Add(valid? iresult : -1);
@@ -346,32 +349,32 @@ namespace Apollo.Devices {
                     
             double start = Heaven.Time;
                     
-            switch (CopyMode) {
+            switch (Data.CopyMode) {
                 case CopyType.Static:
                     return validOffsets.Select(offset => s.With((byte)offset));
 
                 case CopyType.Animate:
                 case CopyType.Interpolate:
-                    if (Reverse) validOffsets.Reverse();
+                    if (Data.Reverse) validOffsets.Reverse();
                     
                     int index = 0;
-                    double total = _time * _gate * (validOffsets.Count - 1);
+                    double total = RealTime * (validOffsets.Count - 1);
 
                     void Next() {
                         index++;
                         if (index < validOffsets.Count) {
                             if (index < validOffsets.Count - 1) Schedule(Next, start += (
-                                Pincher.ApplyPinch(_time * _gate * (index + 1), total, Pinch, Bilateral) -
-                                Pincher.ApplyPinch(_time * _gate * (index), total, Pinch, Bilateral)
+                                Pincher.ApplyPinch(RealTime * (index + 1), total, Data.Pinch, Data.Bilateral) -
+                                Pincher.ApplyPinch(RealTime * (index), total, Data.Pinch, Data.Bilateral)
                             ));
                             
-                            if (validOffsets[index] == -1 || !(!Infinite || index < validOffsets.Count - 1 || s.Color.Lit)) return;
+                            if (validOffsets[index] == -1 || !(!Data.Infinite || index < validOffsets.Count - 1 || s.Color.Lit)) return;
                             
                             ScreenOutput(new [] {s.With((byte)validOffsets[index])}, output);
                         }
                     };
 
-                    Schedule(Next, start += Pincher.ApplyPinch(_time * _gate, total, Pinch, Bilateral));
+                    Schedule(Next, start += Pincher.ApplyPinch(RealTime, total, Data.Pinch, Data.Bilateral));
                     return new [] {s.Clone()};
                 
                 case CopyType.RandomSingle:
@@ -408,7 +411,7 @@ namespace Apollo.Devices {
                                 buffer[k] = RNG.Next(validOffsets.Count - 1);
                                 if (buffer[k] >= old) buffer[k]++;
                                 
-                                Schedule(RandNext, start += _time * _gate);
+                                Schedule(RandNext, start += RealTime);
                                 
                                 ScreenOutput(new [] {
                                     s.With((byte)validOffsets[old], new Color(0)),
@@ -416,7 +419,7 @@ namespace Apollo.Devices {
                                 }, output);
                             };
                             
-                            Schedule(RandNext, start += _time * _gate);
+                            Schedule(RandNext, start += RealTime);
                         }
 
                     } else {
@@ -466,7 +469,7 @@ namespace Apollo.Devices {
         }
             
         public class RateUndoEntry: SimplePathUndoEntry<Copy, int> {
-            protected override void Action(Copy item, int element) => item.Time.Free = element;
+            protected override void Action(Copy item, int element) => item.Time.Data.Free = element;
             
             public RateUndoEntry(Copy copy, int u, int r)
             : base($"Copy Rate Changed to {r}ms", copy, u, r) {}
@@ -476,7 +479,7 @@ namespace Apollo.Devices {
         }   
         
         public class RateModeUndoEntry: SimplePathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, bool element) => item.Time.Mode = element;
+            protected override void Action(Copy item, bool element) => item.Time.Data.Mode = element;
             
             public RateModeUndoEntry(Copy copy, bool u, bool r)
             : base($"Copy Rate Switched to {(r? "Steps" : "Free")}", copy, u, r) {}
@@ -486,7 +489,7 @@ namespace Apollo.Devices {
         }
         
         public class RateStepUndoEntry: SimplePathUndoEntry<Copy, int> {
-            protected override void Action(Copy item, int element) => item.Time.Length.Step = element;
+            protected override void Action(Copy item, int element) => item.Time.Data.Length.Step = element;
             
             public RateStepUndoEntry(Copy copy, int u, int r)
             : base($"Copy Rate Changed to {Length.Steps[r]}", copy, u, r) {}
@@ -496,7 +499,7 @@ namespace Apollo.Devices {
         }
         
         public class GateUndoEntry: SimplePathUndoEntry<Copy, double> {
-            protected override void Action(Copy item, double element) => item.Gate = element;
+            protected override void Action(Copy item, double element) => item.Data.Gate = element;
             
             public GateUndoEntry(Copy copy, double u, double r)
             : base($"Copy Gate Changed to {r}%", copy, u / 100, r / 100) {}
@@ -506,7 +509,7 @@ namespace Apollo.Devices {
         }
         
         public class CopyModeUndoEntry: EnumSimplePathUndoEntry<Copy, CopyType> {
-            protected override void Action(Copy item, CopyType element) => item.CopyMode = element;
+            protected override void Action(Copy item, CopyType element) => item.Data.CopyMode = element;
             
             public CopyModeUndoEntry(Copy copy, CopyType u, CopyType r, IEnumerable source)
             : base("Copy Mode", copy, u, r, source) {}
@@ -516,7 +519,7 @@ namespace Apollo.Devices {
         }
         
         public class GridModeUndoEntry: EnumSimplePathUndoEntry<Copy, GridType> {
-            protected override void Action(Copy item, GridType element) => item.GridMode = element;
+            protected override void Action(Copy item, GridType element) => item.Data.GridMode = element;
             
             public GridModeUndoEntry(Copy copy, GridType u, GridType r, IEnumerable source)
             : base("Copy Grid", copy, u, r, source) {}
@@ -526,7 +529,7 @@ namespace Apollo.Devices {
         }
         
         public class PinchUndoEntry: SimplePathUndoEntry<Copy, double> {
-            protected override void Action(Copy item, double element) => item.Pinch = element;
+            protected override void Action(Copy item, double element) => item.Data.Pinch = element;
             
             public PinchUndoEntry(Copy copy, double u, double r)
             : base($"Copy Pinch Changed to {r}", copy, u, r) {}
@@ -536,7 +539,7 @@ namespace Apollo.Devices {
         }
         
         public class BilateralUndoEntry: SimplePathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, bool element) => item.Bilateral = element;
+            protected override void Action(Copy item, bool element) => item.Data.Bilateral = element;
             
             public BilateralUndoEntry(Copy copy, bool u, bool r)
             : base($"Copy Bilateral Changed to {(r? "Enabled" : "Disabled")}", copy, u, r) {}
@@ -546,7 +549,7 @@ namespace Apollo.Devices {
         }
         
         public class ReverseUndoEntry: SimplePathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, bool element) => item.Reverse = element;
+            protected override void Action(Copy item, bool element) => item.Data.Reverse = element;
             
             public ReverseUndoEntry(Copy copy, bool u, bool r)
             : base($"Copy Reverse Changed to {(r? "Enabled" : "Disabled")}", copy, u, r) {}
@@ -556,7 +559,7 @@ namespace Apollo.Devices {
         }
         
         public class InfiniteUndoEntry: SimplePathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, bool element) => item.Infinite = element;
+            protected override void Action(Copy item, bool element) => item.Data.Infinite = element;
             
             public InfiniteUndoEntry(Copy copy, bool u, bool r)
             : base($"Copy Infinite Changed to {(r? "Enabled" : "Disabled")}", copy, u, r) {}
@@ -566,7 +569,7 @@ namespace Apollo.Devices {
         }
         
         public class WrapUndoEntry: SimplePathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, bool element) => item.Wrap = element;
+            protected override void Action(Copy item, bool element) => item.Data.Wrap = element;
             
             public WrapUndoEntry(Copy copy, bool u, bool r)
             : base($"Copy Wrap Changed to {(r? "Enabled" : "Disabled")}", copy, u, r) {}
@@ -596,24 +599,22 @@ namespace Apollo.Devices {
         
         public class OffsetRemoveUndoEntry: PathUndoEntry<Copy> {
             int index;
-            Offset offset;
+            OffsetData offset;
             int angle;
             
             protected override void UndoPath(params Copy[] items) => items[0].Insert(index, offset.Clone(), angle);
             protected override void RedoPath(params Copy[] items) => items[0].Remove(index);
             
-            protected override void OnDispose() => offset.Dispose();
-            
             public OffsetRemoveUndoEntry(Copy copy, Offset offset, int angle, int index)
             : base($"Copy Offset {index + 1} Removed", copy) {
                 this.index = index;
-                this.offset = offset.Clone();
+                this.offset = offset.Data.Clone();
                 this.angle = angle;
             }
             
             OffsetRemoveUndoEntry(BinaryReader reader, int version): base(reader, version) {
                 index = reader.ReadInt32();
-                offset = Decoder.Decode<Offset>(reader, version);
+                offset = Decoder.Decode<OffsetData>(reader, version);
                 angle = reader.ReadInt32();
             }
             
@@ -668,8 +669,8 @@ namespace Apollo.Devices {
 
         public class OffsetRelativeUndoEntry: OffsetUpdatedUndoEntry {
             protected override void Action(Offset item, int x, int y) {
-                item.X = x;
-                item.Y = y;
+                item.Data.X = x;
+                item.Data.Y = y;
             }
             
             public OffsetRelativeUndoEntry(Copy copy, int index, int ux, int uy, int rx, int ry)
@@ -681,8 +682,8 @@ namespace Apollo.Devices {
 
         public class OffsetAbsoluteUndoEntry: OffsetUpdatedUndoEntry {
             protected override void Action(Offset item, int x, int y) {
-                item.AbsoluteX = x;
-                item.AbsoluteY = y;
+                item.Data.AbsoluteX = x;
+                item.Data.AbsoluteY = y;
             }
             
             public OffsetAbsoluteUndoEntry(Copy copy, int index, int ux, int uy, int rx, int ry)
@@ -693,7 +694,8 @@ namespace Apollo.Devices {
         }
 
         public class OffsetSwitchedUndoEntry: SimpleIndexPathUndoEntry<Copy, bool> {
-            protected override void Action(Copy item, int index, bool element) => item.Offsets[index].IsAbsolute = element;
+            protected override void Action(Copy item, int index, bool element)
+                => item.Offsets[index].Data.IsAbsolute = element;
             
             public OffsetSwitchedUndoEntry(Copy copy, int index, bool u, bool r)
             : base($"Copy Offset {index + 1} Switched to {(r? "Absolute" : "Relative")}", copy, index, u, r) {}

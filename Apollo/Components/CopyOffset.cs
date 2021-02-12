@@ -47,7 +47,7 @@ namespace Apollo.Components {
             _viewer.Switched += Offset_Switched;
             
             Angle.RawValue = angle;
-            Angle.Enabled = copy.CopyMode.SupportsAngle();
+            Angle.Enabled = copy.Data.CopyMode.SupportsAngle();
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) {
@@ -94,8 +94,8 @@ namespace Apollo.Components {
         void Offset_Switched() => Program.Project.Undo.AddAndExecute(new Copy.OffsetSwitchedUndoEntry(
             _copy,
             _copy.Offsets.IndexOf(_offset),
-            _offset.IsAbsolute,
-            !_offset.IsAbsolute
+            _offset.Data.IsAbsolute,
+            !_offset.Data.IsAbsolute
         ));
 
         public void SetOffset(Offset offset) => _viewer.Update(offset);
