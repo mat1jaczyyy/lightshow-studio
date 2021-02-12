@@ -156,7 +156,7 @@ namespace Apollo.Core {
         public static int FPSLimit {
             get => _FPSLimit;
             set {
-                value = Math.Max(10, Math.Min(500, value));
+                value = Math.Clamp(value, 10, 500);
 
                 if (_FPSLimit == value) return;
 

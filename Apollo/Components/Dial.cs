@@ -126,7 +126,7 @@ namespace Apollo.Components {
         public double Value {
             get => _value;
             set {
-                value = Math.Max(0, Math.Min(1, value));
+                value = Math.Clamp(value, 0, 1);
                 if (!_valuechanging && value != _value) {
                     _valuechanging = true;
 
@@ -144,7 +144,7 @@ namespace Apollo.Components {
         public double RawValue {
             get => _raw;
             set {
-                value = Math.Round(Math.Max(_min, Math.Min(_max, value)) * Math.Pow(10, _round), 0) / Math.Pow(10, _round);
+                value = Math.Round(Math.Clamp(value, _min, _max) * Math.Pow(10, _round), 0) / Math.Pow(10, _round);
                 if (!_rawchanging && _raw != value) {
                     _rawchanging = true;
 
@@ -162,7 +162,7 @@ namespace Apollo.Components {
         double _default = 50;
         public double Default {
             get => _default;
-            set => _default = Math.Round(Math.Max(_min, Math.Min(_max, value)) * Math.Pow(10, _round), 0) / Math.Pow(10, _round);
+            set => _default = Math.Round(Math.Clamp(value, _min, _max) * Math.Pow(10, _round), 0) / Math.Pow(10, _round);
         }
 
         string _title = "Dial";
@@ -237,7 +237,7 @@ namespace Apollo.Components {
         public double Scale {
             get => _scale;
             set {
-                value = Math.Max(0, Math.Min(1, value));
+                value = Math.Clamp(value, 0, 1);
                 if (value != _scale) {
                     _scale = value;
 

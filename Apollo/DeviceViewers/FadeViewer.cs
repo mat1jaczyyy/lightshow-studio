@@ -479,7 +479,7 @@ namespace Apollo.DeviceViewers {
 
         void ResizeMove(object sender, PointerEventArgs e) {
             if (mouseHeld) {
-                double width = Math.Min(1200, Math.Max(170, Gradient.Width + e.GetPosition(ResizeArea).X - original));
+                double width = Math.Clamp(Gradient.Width + e.GetPosition(ResizeArea).X - original, 170, 1200);
 
                 Gradient.Width = width;
                 canvas.Width = width + 14;

@@ -187,7 +187,7 @@
 
             <TextBlock Classes="heading" Text="Thanks to our Patreon supporters:" />
             <StackPanel>
-              <TextBlock Text="Alexay Forest, Gabe Walls, Necky, Tuchan, Xiao Meng" />
+              <TextBlock Text="Alexay Forest, Necky, Tuchan" />
             </StackPanel>
           </StackPanel>
         </ScrollViewer>
@@ -196,7 +196,7 @@
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel Grid.Column="0">
               <TextBlock HorizontalAlignment="Center" Text="Apollo Studio / " x:Name="Version" />
-              <TextBlock HorizontalAlignment="Center" Text="2018 - 2020 mat1jaczyyy" />
+              <TextBlock HorizontalAlignment="Center" Text="2018 - 2021 mat1jaczyyy" />
             </StackPanel>
 
             <Components:Patreon Grid.Column="1" VerticalAlignment="Center" />

@@ -49,7 +49,7 @@ namespace Apollo.Components {
         public int X {
             get => _x;
             set {
-                value = Math.Max(-9, Math.Min(9, value));
+                value = Math.Clamp(value, -9, 9);
                 if (value != _x) {
                     _x = value;
                     DrawX();
@@ -63,7 +63,7 @@ namespace Apollo.Components {
         public int Y {
             get => _y;
             set {
-                value = Math.Max(-9, Math.Min(9, value));
+                value = Math.Clamp(value, -9, 9);
                 if (value != _y) {
                     _y = value;
                     DrawY();
@@ -77,7 +77,7 @@ namespace Apollo.Components {
         public int AbsoluteX {
             get => _ax;
             set {
-                value = Math.Max(0, Math.Min(9, value));
+                value = Math.Clamp(value, 0, 9);
                 if (value != _ax) {
                     _ax = value;
                     DrawPoint();
@@ -90,7 +90,7 @@ namespace Apollo.Components {
         public int AbsoluteY {
             get => _ay;
             set {
-                value = Math.Max(0, Math.Min(9, value));
+                value = Math.Clamp(value, 0, 9));
                 if (value != _ay) {
                     _ay = value;
                     DrawPoint();

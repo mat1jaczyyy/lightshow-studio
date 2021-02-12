@@ -1,5 +1,5 @@
 #define MyAppName "Apollo Studio"
-#define MyAppVersion "1.8.4"
+#define MyAppVersion "1.9.0"
 #define MyAppPublisher "mat1jaczyyy"
 #define MyAppURL "apollo.mat1jaczyyy.com"
 #define MyAppExeName "Apollo.exe"

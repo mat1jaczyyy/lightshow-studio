@@ -8,7 +8,7 @@ namespace Apollo.Helpers {
 
         public static double ApplyPinch(double time, double total, double pinch, bool bilateral) {
             double actual = (pinch < 0)? ((1 / (1 - pinch)) - 1) * .9 + 1 : 1 + (pinch * 4 / 3);
-            double value = Math.Min(1, Math.Max(0, time / total));
+            double value = Math.Clamp(time / total, 0, 1);
 
             return total * (bilateral
                 ? (time / total < 0.5)
