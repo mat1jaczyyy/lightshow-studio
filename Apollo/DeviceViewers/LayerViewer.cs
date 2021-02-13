@@ -33,9 +33,9 @@ namespace Apollo.DeviceViewers {
 
             _layer = layer;
             
-            Target.RawValue = _layer.Target;
-            SetMode(_layer.BlendingMode);
-            Range.RawValue = _layer.Range;
+            Target.RawValue = _layer.Data.Target;
+            SetMode(_layer.Data.BlendingMode);
+            Range.RawValue = _layer.Data.Range;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _layer = null;
@@ -54,10 +54,10 @@ namespace Apollo.DeviceViewers {
         void Mode_Changed(object sender, SelectionChangedEventArgs e) {
             BlendingType selected = (BlendingType)BlendingMode.SelectedIndex;
 
-            if (_layer.BlendingMode != selected)
+            if (_layer.Data.BlendingMode != selected)
                 Program.Project.Undo.AddAndExecute(new Layer.ModeUndoEntry(
                     _layer, 
-                    _layer.BlendingMode, 
+                    _layer.Data.BlendingMode, 
                     selected
                 ));
         }

@@ -337,8 +337,8 @@ namespace Apollo.Binary {
                 writer.Write(o[i]);
         }
 
-        public static void Encode(BinaryWriter writer, Layer o) {
-            EncodeID(writer, typeof(Layer));
+        public static void Encode(BinaryWriter writer, LayerData o) {
+            EncodeID(writer, typeof(LayerData));
 
             writer.Write(o.Target);
             writer.Write((int)o.BlendingMode);

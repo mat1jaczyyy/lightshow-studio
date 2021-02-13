@@ -8,7 +8,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Layer: Device {
+    public class LayerData: DeviceData {
+        public LayerViewer Viewer => Instance?.SpecificViewer<LayerViewer>();
+
         int _target;
         public int Target {
             get => _target;
@@ -16,7 +18,7 @@ namespace Apollo.Devices {
                 if (_target != value) {
                     _target = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((LayerViewer)Viewer.SpecificViewer).SetTarget(Target);
+                    Viewer?.SetTarget(Target);
                 }
             }
         }
@@ -27,7 +29,7 @@ namespace Apollo.Devices {
             set {
                 _mode = value;
 
-                if (Viewer?.SpecificViewer != null) ((LayerViewer)Viewer.SpecificViewer).SetMode(BlendingMode);
+                Viewer?.SetMode(BlendingMode);
             }
         }
 
@@ -38,34 +40,41 @@ namespace Apollo.Devices {
                 if (_range != value) {
                     _range = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((LayerViewer)Viewer.SpecificViewer).SetRange(Range);
+                    Viewer?.SetRange(Range);
                 }
             }
         }
-
-        public override Device Clone() => new Layer(Target, BlendingMode, Range) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Layer(int target = 0, BlendingType blending = BlendingType.Normal, int range = 200): base("layer") {
+        
+        public LayerData(int target = 0, BlendingType blending = BlendingType.Normal, int range = 200) {
             Target = target;
             BlendingMode = blending;
             Range = range;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new LayerData(Target, BlendingMode, Range);
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Layer((LayerData)data);
+    }
+
+    public class Layer: Device {
+        public new LayerData Data => (LayerData)Data;
+
+        public Layer(LayerData data): base(data, "layer") {}
+
         public override void MIDIProcess(List<Signal> n) {
             n.ForEach(i => {
-                i.Layer = Target;
-                i.BlendingMode = BlendingMode;
-                i.BlendingRange = Range;
+                i.Layer = Data.Target;
+                i.BlendingMode = Data.BlendingMode;
+                i.BlendingRange = Data.Range;
             });
 
             InvokeExit(n);
         }
         
         public class TargetUndoEntry: SimplePathUndoEntry<Layer, int> {
-            protected override void Action(Layer item, int element) => item.Target = element;
+            protected override void Action(Layer item, int element) => item.Data.Target = element;
             
             public TargetUndoEntry(Layer layer, int u, int r)
             : base($"Layer Target Changed to {r}", layer, u, r) {}
@@ -75,7 +84,7 @@ namespace Apollo.Devices {
         }
         
         public class ModeUndoEntry: SimplePathUndoEntry<Layer, BlendingType> {
-            protected override void Action(Layer item, BlendingType element) => item.BlendingMode = element;
+            protected override void Action(Layer item, BlendingType element) => item.Data.BlendingMode = element;
             
             public ModeUndoEntry(Layer layer, BlendingType u, BlendingType r)
             : base($"Layer Blending Changed to {r}", layer, u, r) {}
@@ -85,7 +94,7 @@ namespace Apollo.Devices {
         }
         
         public class RangeUndoEntry: SimplePathUndoEntry<Layer, int> {
-            protected override void Action(Layer item, int element) => item.Range = element;
+            protected override void Action(Layer item, int element) => item.Data.Range = element;
             
             public RangeUndoEntry(Layer layer, int u, int r)
             : base($"Layer Range Changed to {r}", layer, u, r) {}
