@@ -30,8 +30,8 @@ namespace Apollo.DeviceViewers {
 
             _filter = filter;
             
-            Target.RawValue = _filter.Target;
-            Range.RawValue = _filter.Range;
+            Target.RawValue = _filter.Data.Target;
+            Range.RawValue = _filter.Data.Range;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _filter = null;

@@ -9,7 +9,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class LayerFilter: Device {
+    public class LayerFilterData: DeviceData {
+        public LayerFilterViewer Viewer => Instance?.SpecificViewer<LayerFilterViewer>();
+
         int _target;
         public int Target {
             get => _target;
@@ -17,7 +19,7 @@ namespace Apollo.Devices {
                 if (_target != value) {
                     _target = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((LayerFilterViewer)Viewer.SpecificViewer).SetTarget(Target);
+                    Viewer?.SetTarget(Target);
                 }
             }
         }
@@ -29,26 +31,33 @@ namespace Apollo.Devices {
                 if (_range != value) {
                     _range = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((LayerFilterViewer)Viewer.SpecificViewer).SetRange(Range);
+                    Viewer?.SetRange(Range);
                 }
             }
         }
 
-        public override Device Clone() => new LayerFilter(Target, Range) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public LayerFilter(int target = 0, int range = 0): base("layerfilter", "Layer Filter") {
+        public LayerFilterData(int target = 0, int range = 0) {
             Target = target;
             Range = range;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new LayerFilterData(Target, Range);
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new LayerFilter((LayerFilterData)data);
+    }
+
+    public class LayerFilter: Device {
+        public new LayerFilterData Data => (LayerFilterData)Data;
+
+        public LayerFilter(LayerFilterData data): base(data, "layerfilter", "Layer Filter") {}
+
         public override void MIDIProcess(List<Signal> n)
-            => InvokeExit(n.Where(i => Math.Abs(i.Layer - Target) <= Range).ToList());
+            => InvokeExit(n.Where(i => Math.Abs(i.Layer - Data.Target) <= Data.Range).ToList());
         
         public class TargetUndoEntry: SimplePathUndoEntry<LayerFilter, int> {
-            protected override void Action(LayerFilter item, int element) => item.Target = element;
+            protected override void Action(LayerFilter item, int element) => item.Data.Target = element;
             
             public TargetUndoEntry(LayerFilter filter, int u, int r)
             : base($"Layer Filter Target Changed to {r}", filter, u, r) {}
@@ -58,7 +67,7 @@ namespace Apollo.Devices {
         }
         
         public class RangeUndoEntry: SimplePathUndoEntry<LayerFilter, int> {
-            protected override void Action(LayerFilter item, int element) => item.Range = element;
+            protected override void Action(LayerFilter item, int element) => item.Data.Range = element;
             
             public RangeUndoEntry(LayerFilter filter, int u, int r)
             : base($"Layer Filter Range Changed to {r}", filter, u, r) {}

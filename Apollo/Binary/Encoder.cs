@@ -345,8 +345,8 @@ namespace Apollo.Binary {
             writer.Write(o.Range);
         }
 
-        public static void Encode(BinaryWriter writer, LayerFilter o) {
-            EncodeID(writer, typeof(LayerFilter));
+        public static void Encode(BinaryWriter writer, LayerFilterData o) {
+            EncodeID(writer, typeof(LayerFilterData));
 
             writer.Write(o.Target);
             writer.Write(o.Range);

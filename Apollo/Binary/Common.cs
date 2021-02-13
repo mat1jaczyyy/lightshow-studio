@@ -49,7 +49,7 @@ namespace Apollo.Binary {
             typeof(ChokeData),
             typeof(ColorFilterData),
             typeof(ClearData),
-            typeof(LayerFilter),
+            typeof(LayerFilterData),
             typeof(Loop),
             typeof(Refresh),
             typeof(UndoManager)
