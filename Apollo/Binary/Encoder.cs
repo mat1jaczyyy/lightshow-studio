@@ -362,8 +362,8 @@ namespace Apollo.Binary {
             writer.Write(o.Hold);
         }
 
-        public static void Encode(BinaryWriter writer, Move o) {
-            EncodeID(writer, typeof(Move));
+        public static void Encode(BinaryWriter writer, MoveData o) {
+            EncodeID(writer, typeof(MoveData));
 
             Encode(writer, o.Offset);
             writer.Write((int)o.GridMode);

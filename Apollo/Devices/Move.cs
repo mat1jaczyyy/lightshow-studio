@@ -10,21 +10,19 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Move: Device {
+    public class MoveData: DeviceData {
+        public MoveViewer Viewer => Instance?.SpecificViewer<MoveViewer>();
+
+        public OffsetData Offset;
+
         GridType _gridmode;
         public GridType GridMode {
             get => _gridmode;
             set {
                 _gridmode = value;
 
-                if (Viewer?.SpecificViewer != null) ((MoveViewer)Viewer.SpecificViewer).SetGridMode(GridMode);
+                Viewer?.SetGridMode(GridMode);
             }
-        }
-
-        public Offset Offset;
-
-        void OffsetChanged(Offset sender) {
-            if (Viewer?.SpecificViewer != null) ((MoveViewer)Viewer.SpecificViewer).SetOffset(Offset);
         }
 
         bool _wrap;
@@ -33,20 +31,33 @@ namespace Apollo.Devices {
             set {
                 _wrap = value;
 
-                if (Viewer?.SpecificViewer != null) ((MoveViewer)Viewer.SpecificViewer).SetWrap(Wrap);
+                Viewer?.SetWrap(Wrap);
             }
         }
 
-        public override Device Clone() => new Move(Offset.Clone(), GridMode, Wrap) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Move(Offset offset = null, GridType gridmode = GridType.Full, bool wrap = false): base("move") {
-            Offset = offset?? new Offset();
+        public MoveData(OffsetData offset = null, GridType gridmode = GridType.Full, bool wrap = false) {
+            Offset = offset?? new OffsetData();
             GridMode = gridmode;
             Wrap = wrap;
+        }
 
+        protected override DeviceData CloneSpecific()
+            => new MoveData(Offset.Clone(), GridMode, Wrap);
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Move((MoveData)data);
+    }
+
+    public class Move: Device {
+        public new MoveData Data => (MoveData)Data;
+
+        public readonly Offset Offset;
+
+        void OffsetChanged(Offset sender)
+            => Data.Viewer?.SetOffset(Offset);
+
+        public Move(MoveData data): base(data, "move") {
+            Offset = Data.Offset.Activate();
             Offset.Changed += OffsetChanged;
         }
 
@@ -54,7 +65,7 @@ namespace Apollo.Devices {
             => InvokeExit(n.SelectMany((i => {
                 if (i.Index == 100) return new [] {i};
 
-                if (Offset.Apply(i.Index, GridMode, Wrap, out int x, out int y, out int result)) {
+                if (Offset.Apply(i.Index, Data.GridMode, Data.Wrap, out int x, out int y, out int result)) {
                     i.Index = (byte)result;
                     return new [] {i};
                 }
@@ -108,8 +119,8 @@ namespace Apollo.Devices {
         
         public class OffsetRelativeUndoEntry: OffsetUpdatedUndoEntry {
             protected override void Action(Offset item, int x, int y) {
-                item.X = x;
-                item.Y = y;
+                item.Data.X = x;
+                item.Data.Y = y;
             }
             
             public OffsetRelativeUndoEntry(Move move, int ux, int uy, int rx, int ry)
@@ -121,8 +132,8 @@ namespace Apollo.Devices {
         
         public class OffsetAbsoluteUndoEntry: OffsetUpdatedUndoEntry {
             protected override void Action(Offset item, int x, int y) {
-                item.AbsoluteX = x;
-                item.AbsoluteY = y;
+                item.Data.AbsoluteX = x;
+                item.Data.AbsoluteY = y;
             }
             
             public OffsetAbsoluteUndoEntry(Move move, int ux, int uy, int rx, int ry)
@@ -133,7 +144,7 @@ namespace Apollo.Devices {
         }
 
         public class OffsetSwitchedUndoEntry: SimplePathUndoEntry<Move, bool> {
-            protected override void Action(Move item, bool element) => item.Offset.IsAbsolute = element;
+            protected override void Action(Move item, bool element) => item.Offset.Data.IsAbsolute = element;
             
             public OffsetSwitchedUndoEntry(Move move, bool u, bool r)
             : base($"Move Offset Switched to {(r? "Absolute" : "Relative")}", move, u, r) {}
@@ -143,7 +154,7 @@ namespace Apollo.Devices {
         }
         
         public class GridModeUndoEntry: EnumSimplePathUndoEntry<Move, GridType> {
-            protected override void Action(Move item, GridType element) => item.GridMode = element;
+            protected override void Action(Move item, GridType element) => item.Data.GridMode = element;
             
             public GridModeUndoEntry(Move move, GridType u, GridType r, IEnumerable source)
             : base("Move Grid", move, u, r, source) {}
@@ -153,7 +164,7 @@ namespace Apollo.Devices {
         }
         
         public class WrapUndoEntry: SimplePathUndoEntry<Move, bool> {
-            protected override void Action(Move item, bool element) => item.Wrap = element;
+            protected override void Action(Move item, bool element) => item.Data.Wrap = element;
             
             public WrapUndoEntry(Move move, bool u, bool r)
             : base($"Move Wrap Changed to {(r? "Enabled" : "Disabled")}", move, u, r) {}

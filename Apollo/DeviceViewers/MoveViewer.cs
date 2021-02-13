@@ -41,9 +41,9 @@ namespace Apollo.DeviceViewers {
             Offset.AbsoluteChanged += Offset_AbsoluteChanged;
             Offset.Switched += Offset_Switched;
 
-            GridMode.SelectedIndex = (int)_move.GridMode;
+            GridMode.SelectedIndex = (int)_move.Data.GridMode;
 
-            Wrap.IsChecked = _move.Wrap;
+            Wrap.IsChecked = _move.Data.Wrap;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) {
@@ -78,22 +78,22 @@ namespace Apollo.DeviceViewers {
 
         void Offset_Switched() => Program.Project.Undo.AddAndExecute(new Move.OffsetSwitchedUndoEntry(
             _move, 
-            _move.Offset.IsAbsolute, 
-            !_move.Offset.IsAbsolute
+            _move.Offset.Data.IsAbsolute, 
+            !_move.Offset.Data.IsAbsolute
         ));
 
         public void SetOffset(Offset offset) {
             Offset.Update(offset);
-            Wrap.IsEnabled = !offset.IsAbsolute;
+            Wrap.IsEnabled = !offset.Data.IsAbsolute;
         }
         
         void GridMode_Changed(object sender, SelectionChangedEventArgs e) {
             GridType selected = (GridType)GridMode.SelectedIndex;
 
-            if (_move.GridMode != selected)
+            if (_move.Data.GridMode != selected)
                 Program.Project.Undo.AddAndExecute(new Move.GridModeUndoEntry(
                     _move, 
-                    _move.GridMode, 
+                    _move.Data.GridMode, 
                     selected,
                     GridMode.Items
                 ));
@@ -104,10 +104,10 @@ namespace Apollo.DeviceViewers {
         void Wrap_Changed(object sender, RoutedEventArgs e) {
             bool value = Wrap.IsChecked.Value;
 
-            if (_move.Wrap != value)
+            if (_move.Data.Wrap != value)
                 Program.Project.Undo.AddAndExecute(new Move.WrapUndoEntry(
                     _move, 
-                    _move.Wrap, 
+                    _move.Data.Wrap, 
                     value
                 ));
         }
