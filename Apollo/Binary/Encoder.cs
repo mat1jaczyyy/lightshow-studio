@@ -352,8 +352,8 @@ namespace Apollo.Binary {
             writer.Write(o.Range);
         }
         
-        public static void Encode(BinaryWriter writer, Loop o) {
-            EncodeID(writer, typeof(Loop));
+        public static void Encode(BinaryWriter writer, LoopData o) {
+            EncodeID(writer, typeof(LoopData));
             
             Encode(writer, o.Rate);
             writer.Write(o.Gate);

@@ -50,7 +50,7 @@ namespace Apollo.Binary {
             typeof(ColorFilterData),
             typeof(ClearData),
             typeof(LayerFilterData),
-            typeof(Loop),
+            typeof(LoopData),
             typeof(Refresh),
             typeof(UndoManager)
         };

@@ -36,16 +36,14 @@ namespace Apollo.DeviceViewers {
             
             _loop = loop;
             
-            Rate.UsingSteps = _loop.Rate.Mode;
+            Rate.UsingSteps = _loop.Rate.Data.Mode;
             Rate.Length = _loop.Rate.Length;
-            Rate.RawValue = _loop.Rate.Free;
+            Rate.RawValue = _loop.Rate.Data.Free;
             
-            Gate.RawValue = _loop.Gate * 100;
+            Gate.RawValue = _loop.Data.Gate * 100;
             
-            Repeats.RawValue = _loop.Repeats;
-            Repeats.Enabled = !_loop.Hold;
-            
-            Hold.IsChecked = _loop.Hold;
+            Repeats.RawValue = _loop.Data.Repeats;
+            SetHold(_loop.Data.Hold);
         }
         
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _loop = null;
@@ -84,15 +82,15 @@ namespace Apollo.DeviceViewers {
         void Hold_Changed(object sender, RoutedEventArgs e) {
             bool value = Hold.IsChecked.Value;
 
-            if (_loop.Hold != value)
+            if (_loop.Data.Hold != value)
                 Program.Project.Undo.AddAndExecute(new Loop.HoldUndoEntry(
                     _loop, 
-                    _loop.Hold, 
+                    _loop.Data.Hold, 
                     value
                 ));
         }
         
-        public void SetHold(bool hold){
+        public void SetHold(bool hold) {
             Hold.IsChecked = hold;
             Repeats.Enabled = !hold;
         }
