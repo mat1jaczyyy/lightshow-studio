@@ -8,7 +8,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class KeyFilter: Device {
+    public class KeyFilterData: DeviceData {
+        public KeyFilterViewer Viewer => Instance?.SpecificViewer<KeyFilterViewer>();
+
         bool[] _filter;
         public bool[] Filter {
             get => _filter;
@@ -16,15 +18,10 @@ namespace Apollo.Devices {
                 if (value != null && value.Length == 101) {
                     _filter = value;
 
-                    if (Viewer?.SpecificViewer != null) ((KeyFilterViewer)Viewer.SpecificViewer).Set(_filter);
+                    Viewer?.Set(_filter);
                 }
             }
         }
-
-        public override Device Clone() => new KeyFilter(_filter.ToArray()) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
 
         public bool this[int index] {
             get => _filter[index];
@@ -34,19 +31,31 @@ namespace Apollo.Devices {
             }
         }
 
-        public KeyFilter(bool[] init = null): base("keyfilter", "Key Filter") {
+        public KeyFilterData(bool[] init = null) {
             if (init == null || init.Length != 101) init = new bool[101];
             _filter = init;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new KeyFilterData(Filter.ToArray());
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new KeyFilter((KeyFilterData)data);
+    }
+
+    public class KeyFilter: Device {
+        public new KeyFilterData Data => (KeyFilterData)Data;
+
+        public KeyFilter(KeyFilterData data): base(data, "keyfilter", "Key Filter") {}
+
         public override void MIDIProcess(List<Signal> n)
-            => InvokeExit(n.Where(i => _filter[i.Index]).ToList());
+            => InvokeExit(n.Where(i => Data[i.Index]).ToList());
         
         public class ChangedUndoEntry: SimplePathUndoEntry<KeyFilter, bool[]> {
-            protected override void Action(KeyFilter item, bool[] element) => item.Filter = element.ToArray();
+            protected override void Action(KeyFilter item, bool[] element) => item.Data.Filter = element.ToArray();
             
             public ChangedUndoEntry(KeyFilter filter, bool[] u)
-            : base($"Key Filter Changed", filter, u.ToArray(), filter.Filter.ToArray()) {}
+            : base($"Key Filter Changed", filter, u.ToArray(), filter.Data.Filter.ToArray()) {}
             
             ChangedUndoEntry(BinaryReader reader, int version)
             : base(reader, version) {}

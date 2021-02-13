@@ -27,7 +27,7 @@ namespace Apollo.Binary {
             typeof(FadeData),
             typeof(FlipData),
             typeof(HoldData),
-            typeof(KeyFilter),
+            typeof(KeyFilterData),
             typeof(Layer),
             typeof(Move),
             typeof(Multi),

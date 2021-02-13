@@ -33,7 +33,7 @@ namespace Apollo.DeviceViewers {
             _filter = filter;
 
             for (int i = 0; i < 101; i++)
-                Grid.SetColor(LaunchpadGrid.SignalToGrid(i), GetColor(_filter[i]));
+                Grid.SetColor(LaunchpadGrid.SignalToGrid(i), GetColor(_filter.Data[i]));
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _filter = null;
@@ -42,13 +42,13 @@ namespace Apollo.DeviceViewers {
         bool[] old;
         
         void PadStarted(int index) {
-            drawingState = !_filter[LaunchpadGrid.GridToSignal(index)];
-            old = _filter.Filter.ToArray();
+            drawingState = !_filter.Data[LaunchpadGrid.GridToSignal(index)];
+            old = _filter.Data.Filter.ToArray();
         }
 
         void PadPressed(int index) => Grid.SetColor(
             index,
-            GetColor(_filter[LaunchpadGrid.GridToSignal(index)] = drawingState)
+            GetColor(_filter.Data[LaunchpadGrid.GridToSignal(index)] = drawingState)
         );
 
         void PadFinished(int index) {

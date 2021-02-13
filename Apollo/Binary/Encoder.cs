@@ -330,8 +330,8 @@ namespace Apollo.Binary {
             writer.Write(o.Release);
         }
 
-        public static void Encode(BinaryWriter writer, KeyFilter o) {
-            EncodeID(writer, typeof(KeyFilter));
+        public static void Encode(BinaryWriter writer, KeyFilterData o) {
+            EncodeID(writer, typeof(KeyFilterData));
 
             for (int i = 0; i < 101; i++)
                 writer.Write(o[i]);
