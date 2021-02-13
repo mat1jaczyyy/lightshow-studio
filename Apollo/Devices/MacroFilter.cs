@@ -9,7 +9,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class MacroFilter: Device {
+    public class MacroFilterData: DeviceData {
+        public MacroFilterViewer Viewer => Instance?.SpecificViewer<MacroFilterViewer>();
+
         bool[] _filter;
         public bool[] Filter {
             get => _filter;
@@ -17,8 +19,16 @@ namespace Apollo.Devices {
                 if (value != null && value.Length == 100) {
                     _filter = value;
 
-                    if (Viewer?.SpecificViewer != null) ((MacroFilterViewer)Viewer.SpecificViewer).Set(_filter);
+                    Viewer?.Set(_filter);
                 }
+            }
+        }
+
+        public bool this[int index] {
+            get => _filter[index];
+            set {
+                if (0 <= index && index <= 99)
+                    _filter[index] = value;
             }
         }
 
@@ -29,25 +39,12 @@ namespace Apollo.Devices {
                 if (_macro != value && 1 <= value && value <= 4) {
                    _macro = value;
 
-                   if (Viewer?.SpecificViewer != null) ((MacroFilterViewer)Viewer.SpecificViewer).SetMacro(Macro);
+                   Viewer?.SetMacro(Macro);
                 }
             }
         }
 
-        public override Device Clone() => new MacroFilter(Macro, _filter.ToArray()) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public bool this[int index] {
-            get => _filter[index];
-            set {
-                if (0 <= index && index <= 99)
-                    _filter[index] = value;
-            }
-        }
-
-        public MacroFilter(int target = 1, bool[] init = null): base("macrofilter", "Macro Filter") {
+        public MacroFilterData(int target = 1, bool[] init = null) {
             Macro = target;
 
             if (init == null || init.Length != 100) {
@@ -58,11 +55,23 @@ namespace Apollo.Devices {
             _filter = init;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new MacroFilterData(Macro, Filter.ToArray());
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new MacroFilter((MacroFilterData)data);
+    }
+
+    public class MacroFilter: Device {
+        public new MacroFilterData Data => (MacroFilterData)Data;
+
+        public MacroFilter(MacroFilterData data): base(data, "macrofilter", "Macro Filter") {}
+
         public override void MIDIProcess(List<Signal> n) 
-            => InvokeExit(n.Where(i => _filter[i.GetMacro(Macro) - 1]).ToList());
+            => InvokeExit(n.Where(i => Data[i.GetMacro(Data.Macro) - 1]).ToList());
         
         public class TargetUndoEntry: SimplePathUndoEntry<MacroFilter, int> {
-            protected override void Action(MacroFilter item, int element) => item.Macro = element;
+            protected override void Action(MacroFilter item, int element) => item.Data.Macro = element;
             
             public TargetUndoEntry(MacroFilter filter, int u, int r)
             : base($"Macro Filter Target Changed to {r}", filter, u, r) {}
@@ -72,10 +81,10 @@ namespace Apollo.Devices {
         }
         
         public class FilterUndoEntry: SimplePathUndoEntry<MacroFilter, bool[]> {
-            protected override void Action(MacroFilter item, bool[] element) => item.Filter = element.ToArray();
+            protected override void Action(MacroFilter item, bool[] element) => item.Data.Filter = element.ToArray();
             
             public FilterUndoEntry(MacroFilter filter, bool[] u)
-            : base($"Macro Filter Changed", filter, u.ToArray(), filter.Filter.ToArray()) {}
+            : base($"Macro Filter Changed", filter, u.ToArray(), filter.Data.Filter.ToArray()) {}
             
             FilterUndoEntry(BinaryReader reader, int version)
             : base(reader, version) {}

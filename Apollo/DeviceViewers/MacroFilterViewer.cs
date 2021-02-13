@@ -36,11 +36,11 @@ namespace Apollo.DeviceViewers {
 
             _filter = filter;
             
-            MacroDial.RawValue = _filter.Macro;
+            MacroDial.RawValue = _filter.Data.Macro;
 
             for (int i = 0; i < MacrosGrid.Children.Count; i++) {
                 MacroRectangle Rect = (MacroRectangle)MacrosGrid.Children[i];
-                SetColor(Rect, _filter[i]);
+                SetColor(Rect, _filter.Data[i]);
                 Rect.Index = i + 1;
             }
         }
@@ -73,8 +73,8 @@ namespace Apollo.DeviceViewers {
                 MacrosGrid.Cursor = new Cursor(StandardCursorType.Hand);
 
                 int index = MacrosGrid.Children.IndexOf((IControl)sender);
-                drawingState = !_filter[index];
-                old = _filter.Filter.ToArray();
+                drawingState = !_filter.Data[index];
+                old = _filter.Data.Filter.ToArray();
 
                 MouseMove(sender, e);
             }
@@ -103,7 +103,7 @@ namespace Apollo.DeviceViewers {
             }
         }
 
-        void MouseEnter(MacroRectangle rect) => SetColor(rect, _filter[MacrosGrid.Children.IndexOf(rect)] = drawingState);
+        void MouseEnter(MacroRectangle rect) => SetColor(rect, _filter.Data[MacrosGrid.Children.IndexOf(rect)] = drawingState);
 
         void MouseMove(object sender, PointerEventArgs e) {
             if (mouseHeld) {
