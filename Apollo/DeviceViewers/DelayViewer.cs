@@ -30,11 +30,11 @@ namespace Apollo.DeviceViewers {
 
             _delay = delay;
             
-            Duration.UsingSteps = _delay.Time.Mode;
+            Duration.UsingSteps = _delay.Time.Data.Mode;
             Duration.Length = _delay.Time.Length;
-            Duration.RawValue = _delay.Time.Free;
+            Duration.RawValue = _delay.Time.Data.Free;
 
-            Gate.RawValue = _delay.Gate * 100;
+            Gate.RawValue = _delay.Data.Gate * 100;
         }
 
         void Duration_Changed(Dial sender, double value, double? old) {

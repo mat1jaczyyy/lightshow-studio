@@ -284,14 +284,14 @@ namespace Apollo.Binary {
                 writer.Write(o.Angles[i]);
         }
 
-        public static void Encode(BinaryWriter writer, Delay o) {
-            EncodeID(writer, typeof(Delay));
+        public static void Encode(BinaryWriter writer, DelayData o) {
+            EncodeID(writer, typeof(DelayData));
 
             Encode(writer, o.Time);
             writer.Write(o.Gate);
         }
 
-        public static void Encode(BinaryWriter writer, Fade o) {
+        public static void Encode(BinaryWriter writer, FadeData o) {
             EncodeID(writer, typeof(Fade));
 
             Encode(writer, o.Time);
@@ -300,13 +300,13 @@ namespace Apollo.Binary {
 
             writer.Write(o.Count);
             for (int i = 0; i < o.Count; i++)
-                Encode(writer, o.GetColor(i));
+                Encode(writer, o.Colors[i]);
             
             for (int i = 0; i < o.Count; i++)
-                writer.Write(o.GetPosition(i));
+                writer.Write(o.Positions[i]);
             
             for (int i = 0; i < o.Count - 1; i++)
-                writer.Write((int)o.GetFadeType(i));
+                writer.Write((int)o.Types[i]);
 
             writer.Write(o.Expanded.HasValue);
             if (o.Expanded.HasValue)

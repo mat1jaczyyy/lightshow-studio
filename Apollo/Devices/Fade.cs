@@ -14,7 +14,88 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
+    public class FadeData: DeviceData {
+        public new Fade Instance => (Fade)Instance;
+        public FadeViewer Viewer => Instance?.SpecificViewer<FadeViewer>();
+
+        public TimeData Time;
+
+        double _gate;
+        public double Gate {
+            get => _gate;
+            set {
+                if (0.01 <= value && value <= 4) {
+                    _gate = value;
+                    
+                    Instance?.Generate();
+                    Viewer?.SetGate(Gate);
+                }
+            }
+        }
+
+        FadePlaybackType _mode;
+        public FadePlaybackType PlayMode {
+            get => _mode;
+            set {
+                _mode = value;
+
+                Viewer?.SetPlaybackMode(PlayMode);
+            }
+        }
+
+        public List<Color> Colors = new();
+        public void SetColor(int index, Color color) {
+            if (Colors[index] != color) {
+                Colors[index] = color;
+
+                Instance?.Generate();
+                Viewer?.SetColor(index, Colors[index]);
+            }
+        }
+
+        public List<double> Positions = new();
+        public void SetPosition(int index, double position) {
+            if (Positions[index] != position) {
+                Positions[index] = position;
+
+                Instance?.Generate();
+                Viewer?.SetPosition(index, Positions[index]);
+            }
+        }
+
+        public List<FadeType> Types = new();
+        public void SetFadeType(int index, FadeType type) {
+            if (Types[index] != type) {
+                Types[index] = type;
+
+                Instance?.Generate();
+            }
+        }
+
+        public int Count => Colors.Count;
+        public int? Expanded;
+        
+        public FadeData(TimeData time = null, double gate = 1, FadePlaybackType playmode = FadePlaybackType.Mono, List<Color> colors = null, List<double> positions = null, List<FadeType> types = null, int? expanded = null) {
+            Time = time?? new TimeData();
+            Gate = gate;
+            PlayMode = playmode;
+
+            Colors = colors?? new List<Color>() {new Color(), new Color(0)};
+            Positions = positions?? new List<double>() {0, 1};
+            Types = types?? new List<FadeType>() {FadeType.Linear};
+            Expanded = expanded;
+        }
+
+        protected override DeviceData CloneSpecific()
+            => new FadeData(Time.Clone(), _gate, PlayMode, Colors.Select(i => i.Clone()).ToList(), Positions.ToList(), Types.ToList());
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Fade((FadeData)data);
+    }
+
     public class Fade: Device {
+        public new FadeData Data => (FadeData)Data;
+
         public class FadeInfo {
             public Color Color;
             public double Time;
@@ -27,39 +108,6 @@ namespace Apollo.Devices {
             }
 
             public FadeInfo WithTime(double time) => new FadeInfo(Color, time, IsHold);
-        }
-
-        List<Color> _colors = new();
-        List<double> _positions = new();
-        List<FadeType> _types = new();
-        List<FadeInfo> fade;
-
-        public Color GetColor(int index) => _colors[index];
-        public void SetColor(int index, Color color) {
-            if (_colors[index] != color) {
-                _colors[index] = color;
-                Generate();
-
-                if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetColor(index, _colors[index]);
-            }
-        }
-
-        public double GetPosition(int index) => _positions[index];
-        public void SetPosition(int index, double position) {
-            if (_positions[index] != position) {
-                _positions[index] = position;
-                Generate();
-                
-                if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetPosition(index, _positions[index]);
-            }
-        }
-        
-        public FadeType GetFadeType(int index) => _types[index];
-        public void SetFadeType(int index, FadeType type) {
-            if (_types[index] != type) {
-                _types[index] = type;
-                Generate();
-            }
         }
 
         static Dictionary<FadeType, Func<double, double>> TimeEasing = new() { 
@@ -75,7 +123,7 @@ namespace Apollo.Devices {
             }
         };
 
-        double EaseTime(FadeType type, double start, double end, double val) {
+        static double EaseTime(FadeType type, double start, double end, double val) {
             if (type == FadeType.Linear) return val;
             if (type == FadeType.Hold) return (start != val)? end - 0.1 : start;
             if (type == FadeType.Release) return start;
@@ -83,67 +131,27 @@ namespace Apollo.Devices {
             double duration = end - start;
             return start + duration * TimeEasing[type].Invoke((val - start) / duration);
         }
+
+        List<FadeInfo> fade;
     
-        Time _time;
-        public Time Time {
-            get => _time;
-            set {
-                if (_time != null) {
-                    _time.FreeChanged -= FreeChanged;
-                    _time.ModeChanged -= ModeChanged;
-                    _time.StepChanged -= StepChanged;
-                }
-
-                _time = value;
-
-                if (_time != null) {
-                    _time.Minimum = 1;
-                    _time.Maximum = 30000;
-
-                    _time.FreeChanged += FreeChanged;
-                    _time.ModeChanged += ModeChanged;
-                    _time.StepChanged += StepChanged;
-                }
-            }
-        }
+        public readonly Time Time;
 
         void FreeChanged(int value) {
             Generate();
-            if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetDurationValue(value);
+            Data.Viewer?.SetDurationValue(value);
         }
 
         void ModeChanged(bool value) {
             Generate();
-            if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetMode(value);
+            Data.Viewer?.SetMode(value);
         }
 
         void StepChanged(Length value) {
             Generate();
-            if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetDurationStep(value);
+            Data.Viewer?.SetDurationStep(value);
         }
 
-        double _gate;
-        public double Gate {
-            get => _gate;
-            set {
-                if (0.01 <= value && value <= 4) {
-                    _gate = value;
-                    Generate();
-                    
-                    if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetGate(Gate);
-                }
-            }
-        }
-
-        FadePlaybackType _mode;
-        public FadePlaybackType PlayMode {
-            get => _mode;
-            set {
-                _mode = value;
-
-                if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).SetPlaybackMode(PlayMode);
-            }
-        }
+        public double RealTime => Time * Data.Gate;
 
         public delegate void GeneratedEventHandler(List<FadeInfo> points);
         public event GeneratedEventHandler Generated;
@@ -153,23 +161,23 @@ namespace Apollo.Devices {
         void Generate(int fps) {
             double frameTime = 1000.0 / fps;
 
-            if (_colors.Count < 2 || _positions.Count < 2) return;
-            if (_types.Count < _colors.Count - 1) return;
+            if (Data.Colors.Count < 2 || Data.Positions.Count < 2) return;
+            if (Data.Types.Count < Data.Colors.Count - 1) return;
 
             List<Color> _steps = new();
             List<int> _counts = new();
             List<int> _cutoffs = new() {0};
 
-            for (int i = 0; i < _colors.Count - 1; i++) {
+            for (int i = 0; i < Data.Colors.Count - 1; i++) {
                 int max = new [] {
-                    Math.Abs(_colors[i].Red - _colors[i + 1].Red),
-                    Math.Abs(_colors[i].Green - _colors[i + 1].Green),
-                    Math.Abs(_colors[i].Blue - _colors[i + 1].Blue),
+                    Math.Abs(Data.Colors[i].Red - Data.Colors[i + 1].Red),
+                    Math.Abs(Data.Colors[i].Green - Data.Colors[i + 1].Green),
+                    Math.Abs(Data.Colors[i].Blue - Data.Colors[i + 1].Blue),
                     1
                 }.Max();
 
-                if(_types[i] == FadeType.Hold) {
-                    _steps.Add(_colors[i]);
+                if(Data.Types[i] == FadeType.Hold) {
+                    _steps.Add(Data.Colors[i]);
                     _counts.Add(1);
                     _cutoffs.Add(1 + _cutoffs.Last());
 
@@ -177,9 +185,9 @@ namespace Apollo.Devices {
                     for (double k = 0; k < max; k++) {
                         double factor = k / max;
                         _steps.Add(new Color(
-                            (byte)(_colors[i].Red + (_colors[i + 1].Red - _colors[i].Red) * factor),
-                            (byte)(_colors[i].Green + (_colors[i + 1].Green - _colors[i].Green) * factor),
-                            (byte)(_colors[i].Blue + (_colors[i + 1].Blue - _colors[i].Blue) * factor)
+                            (byte)(Data.Colors[i].Red + (Data.Colors[i + 1].Red - Data.Colors[i].Red) * factor),
+                            (byte)(Data.Colors[i].Green + (Data.Colors[i + 1].Green - Data.Colors[i].Green) * factor),
+                            (byte)(Data.Colors[i].Blue + (Data.Colors[i + 1].Blue - Data.Colors[i].Blue) * factor)
                         ));
                     }
 
@@ -188,7 +196,7 @@ namespace Apollo.Devices {
                 }
             }
 
-            _steps.Add(_colors.Last());
+            _steps.Add(Data.Colors.Last());
 
             if (_steps.Last().Lit) {
                 _cutoffs[_cutoffs.Count - 1]++;
@@ -200,21 +208,21 @@ namespace Apollo.Devices {
             }
 
             List<FadeInfo> fullFade = new() {
-                new FadeInfo(_steps[0], 0, _types[0] == FadeType.Hold)
+                new FadeInfo(_steps[0], 0, Data.Types[0] == FadeType.Hold)
             };
 
             int j = 0;
             for (int i = 1; i < _steps.Count; i++) {
                 if (_cutoffs[j + 1] == i) j++;
                 
-                if (j < _colors.Count - 1) {
-                    double prevTime = (j != 0)? _positions[j] * _time * _gate : 0;
-                    double currTime = (_positions[j] + (_positions[j + 1] - _positions[j]) * (i - _cutoffs[j]) / _counts[j]) * _time * _gate;
-                    double nextTime = _positions[j + 1] * _time * _gate;
+                if (j < Data.Colors.Count - 1) {
+                    double prevTime = (j != 0)? Data.Positions[j] * RealTime : 0;
+                    double currTime = (Data.Positions[j] + (Data.Positions[j + 1] - Data.Positions[j]) * (i - _cutoffs[j]) / _counts[j]) * RealTime;
+                    double nextTime = Data.Positions[j + 1] * RealTime;
                     
-                    double time = EaseTime(_types[j], prevTime, nextTime, currTime);
+                    double time = EaseTime(Data.Types[j], prevTime, nextTime, currTime);
                     
-                    fullFade.Add(new FadeInfo(_steps[i], time, _types[j] == FadeType.Hold));
+                    fullFade.Add(new FadeInfo(_steps[i], time, Data.Types[j] == FadeType.Hold));
                 }
             }
             
@@ -229,61 +237,48 @@ namespace Apollo.Devices {
                 if (cutoff < fullFade[i].Time)
                     fade.Add(fullFade[i]);
                     
-                else if (fade.Last().Time + 2 * frameTime <= ((i < fullFade.Count - 1)? fullFade[i + 1].Time : _time * _gate))
+                else if (fade.Last().Time + 2 * frameTime <= ((i < fullFade.Count - 1)? fullFade[i + 1].Time : RealTime))
                     fade.Add(fullFade[i].WithTime(cutoff));
 
                 else if (i == fullFade.Count - 1 && fullFade[i].Color.Lit)
                     fade.Add(fullFade[i]);
             }
 
-            fade.Add(new FadeInfo(_steps.Last(), _time * _gate));
+            fade.Add(new FadeInfo(_steps.Last(), RealTime));
             
             Generated?.Invoke(fullFade);
         }
 
-        public int Count => _colors.Count;
-
-        public override Device Clone() => new Fade(_time.Clone(), _gate, PlayMode, _colors.Select(i => i.Clone()).ToList(), _positions.ToList(), _types.ToList()) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
         public void Insert(int index, Color color, double position, FadeType type) {
-            _colors.Insert(index, color);
-            _positions.Insert(index, position);
-            _types.Insert(index, type);
+            Data.Colors.Insert(index, color);
+            Data.Positions.Insert(index, position);
+            Data.Types.Insert(index, type);
 
-            if (Viewer?.SpecificViewer != null) {
-                FadeViewer SpecificViewer = ((FadeViewer)Viewer.SpecificViewer);
-                SpecificViewer.Contents_Insert(index, _colors[index]);
-
-                SpecificViewer.Expand(index);
-            }
+            Data.Viewer?.Contents_Insert(index, Data.Colors[index]);
+            Data.Viewer?.Expand(index);
 
             Generate();
         }
 
         public void Remove(int index) {
-            _colors.RemoveAt(index);
-            _positions.RemoveAt(index);
-            if (index < _types.Count) _types.RemoveAt(index);
+            Data.Colors.RemoveAt(index);
+            Data.Positions.RemoveAt(index);
+            if (index < Data.Types.Count) Data.Types.RemoveAt(index);
 
-            if (Viewer?.SpecificViewer != null) ((FadeViewer)Viewer.SpecificViewer).Contents_Remove(index);
+            Data.Viewer?.Contents_Remove(index);
 
             Generate();
         }
 
-        public int? Expanded;
+        public Fade(FadeData data): base(data, "fade") {
+            Time = Data.Time.Activate();
 
-        public Fade(Time time = null, double gate = 1, FadePlaybackType playmode = FadePlaybackType.Mono, List<Color> colors = null, List<double> positions = null, List<FadeType> types = null, int? expanded = null) : base("fade") {
-            Time = time?? new Time();
-            Gate = gate;
-            PlayMode = playmode;
+            Time.Minimum = 1;
+            Time.Maximum = 30000;
 
-            _colors = colors?? new List<Color>() {new Color(), new Color(0)};
-            _positions = positions?? new List<double>() {0, 1};
-            _types = types?? new List<FadeType>() {FadeType.Linear};
-            Expanded = expanded;
+            Time.FreeChanged += FreeChanged;
+            Time.ModeChanged += ModeChanged;
+            Time.StepChanged += StepChanged;
 
             Initialize();
         }
@@ -306,7 +301,7 @@ namespace Apollo.Devices {
 
                 Signal p = buffer.TryGetValue(k, out p)? p : null;
 
-                if (!(PlayMode == FadePlaybackType.Mono && !i.Color.Lit && buffer.ContainsKey(k) && (buffer[k]?.Color.Lit?? false)))
+                if (!(Data.PlayMode == FadePlaybackType.Mono && !i.Color.Lit && buffer.ContainsKey(k) && (buffer[k]?.Color.Lit?? false)))
                     buffer[k] = v;
 
                 if (i.Color.Lit) {
@@ -315,13 +310,13 @@ namespace Apollo.Devices {
                     
                     void Next() {
                         if (!object.ReferenceEquals(buffer[k], v)) {
-                            if (PlayMode == FadePlaybackType.Mono && !buffer[k].Color.Lit)
+                            if (Data.PlayMode == FadePlaybackType.Mono && !buffer[k].Color.Lit)
                                 v = buffer[k];
                             
                             else return;
                         }
 
-                        if (++index == fade.Count - 1 && PlayMode == FadePlaybackType.Loop)
+                        if (++index == fade.Count - 1 && Data.PlayMode == FadePlaybackType.Loop)
                             index = 0;
                         
                         if (index < fade.Count) {
@@ -337,7 +332,7 @@ namespace Apollo.Devices {
 
                     return new [] {i.With(color: fade[0].Color.Clone())};
                 
-                } else if (PlayMode == FadePlaybackType.Loop && !(p is null)) {
+                } else if (Data.PlayMode == FadePlaybackType.Loop && !(p is null)) {
                     buffer[k] = null;
 
                     return new [] {k};
@@ -402,19 +397,19 @@ namespace Apollo.Devices {
             double up;
             FadeType ut;
             
-            protected override void UndoPath(params Fade[] items) => items[0].Insert(index, uc, up, ut);
+            protected override void UndoPath(params Fade[] items) => items[0].Insert(index, uc.Clone(), up, ut);
             protected override void RedoPath(params Fade[] items) => items[0].Remove(index);
             
             public ThumbRemoveUndoEntry(Fade fade, int index)
             : base($"Fade Color {index + 1} Removed", fade) {
                 this.index = index;
                 
-                uc = fade.GetColor(index);
-                up = fade.GetPosition(index);
-                ut = fade.GetFadeType(index);
+                uc = fade.Data.Colors[index].Clone();
+                up = fade.Data.Positions[index];
+                ut = fade.Data.Types[index];
             }
             
-            ThumbRemoveUndoEntry(BinaryReader reader, int version): base(reader, version){
+            ThumbRemoveUndoEntry(BinaryReader reader, int version): base(reader, version) {
                 index = reader.ReadInt32();
                 uc = Decoder.Decode<Color>(reader, version);
                 up = reader.ReadDouble();
@@ -432,17 +427,17 @@ namespace Apollo.Devices {
         }
         
         public class ThumbTypeUndoEntry: SimpleIndexPathUndoEntry<Fade, FadeType> {
-            protected override void Action(Fade item, int index, FadeType element) => item.SetFadeType(index, element);
+            protected override void Action(Fade item, int index, FadeType element) => item.Data.SetFadeType(index, element);
             
             public ThumbTypeUndoEntry(Fade fade, int index, FadeType r)
-            : base($"Fade Type {index + 1} Changed to {r.ToString()}", fade, index, fade.GetFadeType(index), r) {}
+            : base($"Fade Type {index + 1} Changed to {r.ToString()}", fade, index, fade.Data.Types[index], r) {}
             
             ThumbTypeUndoEntry(BinaryReader reader, int version)
             : base(reader, version) {}
         }
         
         public class ThumbMoveUndoEntry: SimpleIndexPathUndoEntry<Fade, double> {
-            protected override void Action(Fade item, int index, double element) => item.SetPosition(index, element);
+            protected override void Action(Fade item, int index, double element) => item.Data.SetPosition(index, element);
             
             public ThumbMoveUndoEntry(Fade fade, int index, double u, double r)
             : base($"Fade Color {index + 1} Moved", fade, index, u, r) {}
@@ -452,17 +447,17 @@ namespace Apollo.Devices {
         }
         
         public class ColorUndoEntry: SimpleIndexPathUndoEntry<Fade, Color> {
-            protected override void Action(Fade item, int index, Color element) => item.SetColor(index, element.Clone());
+            protected override void Action(Fade item, int index, Color element) => item.Data.SetColor(index, element.Clone());
             
             public ColorUndoEntry(Fade fade, int index, Color u, Color r)
-            : base($"Fade Color {index + 1} Changed to {r.ToHex()}", fade, index, u, r) {}
+            : base($"Fade Color {index + 1} Changed to {r.ToHex()}", fade, index, u.Clone(), r.Clone()) {}
             
             ColorUndoEntry(BinaryReader reader, int version)
             : base(reader, version) {}
         }
         
         public class DurationUndoEntry: SimplePathUndoEntry<Fade, int> {
-            protected override void Action(Fade item, int element) => item.Time.Free = element;
+            protected override void Action(Fade item, int element) => item.Time.Data.Free = element;
             
             public DurationUndoEntry(Fade fade, int u, int r)
             : base($"Fade Duration Changed to {r}ms", fade, u, r) {}
@@ -472,7 +467,7 @@ namespace Apollo.Devices {
         }
         
         public class DurationModeUndoEntry: SimplePathUndoEntry<Fade, bool> {
-            protected override void Action(Fade item, bool element) => item.Time.Mode = element;
+            protected override void Action(Fade item, bool element) => item.Time.Data.Mode = element;
             
             public DurationModeUndoEntry(Fade fade, bool u, bool r)
             : base($"Fade Duration Switched to {(r? "Steps" : "Free")}", fade, u, r) {}
@@ -482,7 +477,7 @@ namespace Apollo.Devices {
         }
         
         public class DurationStepUndoEntry: SimplePathUndoEntry<Fade, int> {
-            protected override void Action(Fade item, int element) => item.Time.Length.Step = element;
+            protected override void Action(Fade item, int element) => item.Time.Length.Data.Step = element;
             
             public DurationStepUndoEntry(Fade fade, int u, int r)
             : base($"Fade Duration Changed to {Length.Steps[r]}", fade, u, r) {}
@@ -492,7 +487,7 @@ namespace Apollo.Devices {
         }
         
         public class GateUndoEntry: SimplePathUndoEntry<Fade, double> {
-            protected override void Action(Fade item, double element) => item.Gate = element;
+            protected override void Action(Fade item, double element) => item.Data.Gate = element;
             
             public GateUndoEntry(Fade fade, double u, double r)
             : base($"Fade Gate Changed to {r}%", fade, u / 100, r / 100) {}
@@ -502,7 +497,7 @@ namespace Apollo.Devices {
         }
         
         public class PlaybackModeUndoEntry: SimplePathUndoEntry<Fade, FadePlaybackType> {
-            protected override void Action(Fade item, FadePlaybackType element) => item.PlayMode = element;
+            protected override void Action(Fade item, FadePlaybackType element) => item.Data.PlayMode = element;
             
             public PlaybackModeUndoEntry(Fade fade, FadePlaybackType u, FadePlaybackType r)
             : base($"Fade Playback Mode Changed to {r.ToString()}", fade, u, r) {}
@@ -513,21 +508,21 @@ namespace Apollo.Devices {
         
         public class ReverseUndoEntry: SymmetricPathUndoEntry<Fade> {
             protected override void Action(Fade item) {
-                List<Color> colors = Enumerable.Range(0, item.Count).Select(i => item.GetColor(i)).ToList();
-                List<double> positions = Enumerable.Range(0, item.Count).Select(i => 1 - item.GetPosition(i)).ToList();
+                List<Color> colors = item.Data.Colors.ToList();
+                List<double> positions = item.Data.Positions.ToList();
+                List<FadeType> fadetypes = item.Data.Types.ToList();
                 
-                for (int i = 0; i < item.Count; i++) {
-                    item.SetColor(i, colors[item.Count - i - 1]);
-                    item.SetPosition(i, positions[item.Count - i - 1]);
+                for (int i = 0; i < item.Data.Count; i++) {
+                    item.Data.SetColor(i, colors[item.Data.Count - i - 1]);
+                    item.Data.SetPosition(i, positions[item.Data.Count - i - 1]);
                 }
                 
-                List<FadeType> fadetypes = Enumerable.Range(0, item.Count - 1).Select(i => item.GetFadeType(i)).ToList();
-                
-                for (int i = 0; i < item.Count - 1; i++)
-                    item.SetFadeType(i, fadetypes[item.Count - i - 2].Opposite());
+                for (int i = 0; i < item.Data.Count - 1; i++)
+                    item.Data.SetFadeType(i, fadetypes[item.Data.Count - i - 2].Opposite());
 
-                int? expanded = item.Count - item.Expanded - 1;
-                if (expanded != item.Expanded && item.Viewer?.SpecificViewer != null) ((FadeViewer)item.Viewer.SpecificViewer).Expand(expanded);
+                int? expanded = item.Data.Count - item.Data.Expanded - 1;
+                if (expanded != item.Data.Expanded)
+                    item.Data.Viewer?.Expand(expanded);
             }
             
             public ReverseUndoEntry(Fade fade)
@@ -539,14 +534,14 @@ namespace Apollo.Devices {
         
         public class EqualizeUndoEntry: SimplePathUndoEntry<Fade, double[]> {
             protected override void Action(Fade item, double[] element) {
-                for (int i = 1; i < item.Count - 1; i++)
-                    item.SetPosition(i, element[i - 1]);
+                for (int i = 1; i < item.Data.Count - 1; i++)
+                    item.Data.SetPosition(i, element[i - 1]);
             }
             
             public EqualizeUndoEntry(Fade fade)
             : base("Fade Equalized", fade,
-                Enumerable.Range(1, fade.Count - 2).Select(i => fade.GetPosition(i)).ToArray(),
-                Enumerable.Range(1, fade.Count - 2).Select(i => (double)i / (fade.Count - 1)).ToArray()
+                Enumerable.Range(1, fade.Data.Count - 2).Select(i => fade.Data.Positions[i]).ToArray(),
+                Enumerable.Range(1, fade.Data.Count - 2).Select(i => (double)i / (fade.Data.Count - 1)).ToArray()
             ) {}
             
             EqualizeUndoEntry(BinaryReader reader, int version)
@@ -560,11 +555,11 @@ namespace Apollo.Devices {
             int index;
 
             protected override void Undo(Fade item) {
-                while (item.Count > 0)
-                    item.Remove(item.Count - 1);
+                while (item.Data.Count > 0)
+                    item.Remove(item.Data.Count - 1);
                 
                 for (int i = 0; i < colors.Count; i++)
-                    item.Insert(i, colors[i], positions[i], i < fadetypes.Count? fadetypes[i] : FadeType.Linear);
+                    item.Insert(i, colors[i].Clone(), positions[i], i < fadetypes.Count? fadetypes[i] : FadeType.Linear);
             }
             
             protected override void Redo(Fade item) => Redo(item, index);
@@ -574,9 +569,9 @@ namespace Apollo.Devices {
             : base($"Fade {action} Here Applied To Color {index + 1}", fade) {
                 this.index = index;
                 
-                colors = Enumerable.Range(0, fade.Count).Select(i => fade.GetColor(i)).ToList();
-                positions = Enumerable.Range(0, fade.Count).Select(i => fade.GetPosition(i)).ToList();
-                fadetypes = Enumerable.Range(0, fade.Count - 1).Select(i => fade.GetFadeType(i)).ToList();
+                colors = fade.Data.Colors.Select(i => i.Clone()).ToList();
+                positions = fade.Data.Positions.ToList();
+                fadetypes = fade.Data.Types.ToList();
             }
         
             protected CutUndoEntry(BinaryReader reader, int version)
@@ -611,8 +606,8 @@ namespace Apollo.Devices {
                 for (int i = index - 1; i >= 0; i--)
                     item.Remove(i);
                 
-                for (int i = item.Count - 1; i >= 0; i--)
-                    item.SetPosition(i, (item.GetPosition(i) - item.GetPosition(0)) / (1 - item.GetPosition(0)));
+                for (int i = item.Data.Count - 1; i >= 0; i--)
+                    item.Data.SetPosition(i, (item.Data.Positions[i] - item.Data.Positions[0]) / (1 - item.Data.Positions[0]));
             }
             
             public StartHereUndoEntry(Fade fade, int index)
@@ -624,11 +619,11 @@ namespace Apollo.Devices {
 
         public class EndHereUndoEntry: CutUndoEntry {
             protected override void Redo(Fade item, int index) {
-                for (int i = item.Count - 1; i > index; i--)
+                for (int i = item.Data.Count - 1; i > index; i--)
                     item.Remove(i);
                 
-                for (int i = 0; i < item.Count; i++)
-                    item.SetPosition(i, item.GetPosition(i) / item.GetPosition(index));
+                for (int i = 0; i < item.Data.Count; i++)
+                    item.Data.SetPosition(i, item.Data.Positions[i] / item.Data.Positions[i]);
             }
             
             public EndHereUndoEntry(Fade fade, int index)

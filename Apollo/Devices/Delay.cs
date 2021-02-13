@@ -8,41 +8,10 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Delay: Device {
-        Time _time;
-        public Time Time {
-            get => _time;
-            set {
-                if (_time != null) {
-                    _time.FreeChanged -= FreeChanged;
-                    _time.ModeChanged -= ModeChanged;
-                    _time.StepChanged -= StepChanged;
-                }
+    public class DelayData: DeviceData {
+        public DelayViewer Viewer => Instance?.SpecificViewer<DelayViewer>();
 
-                _time = value;
-
-                if (_time != null) {
-                    _time.Minimum = 1;
-                    _time.Maximum = 30000;
-
-                    _time.FreeChanged += FreeChanged;
-                    _time.ModeChanged += ModeChanged;
-                    _time.StepChanged += StepChanged;
-                }
-            }
-        }
-
-        void FreeChanged(int value) {
-            if (Viewer?.SpecificViewer != null) ((DelayViewer)Viewer.SpecificViewer).SetDurationValue(value);
-        }
-
-        void ModeChanged(bool value) {
-            if (Viewer?.SpecificViewer != null) ((DelayViewer)Viewer.SpecificViewer).SetMode(value);
-        }
-
-        void StepChanged(Length value) {
-            if (Viewer?.SpecificViewer != null) ((DelayViewer)Viewer.SpecificViewer).SetDurationStep(value);
-        }
+        public TimeData Time;
 
         double _gate;
         public double Gate {
@@ -51,23 +20,50 @@ namespace Apollo.Devices {
                 if (0.01 <= value && value <= 4) {
                     _gate = value;
                     
-                    if (Viewer?.SpecificViewer != null) ((DelayViewer)Viewer.SpecificViewer).SetGate(Gate);
+                    Viewer?.SetGate(Gate);
                 }
             }
         }
 
-        public override Device Clone() => new Delay(_time.Clone(), _gate) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Delay(Time time = null, double gate = 1): base("delay") {
-            Time = time?? new Time();
+        public DelayData(TimeData time = null, double gate = 1) {
+            Time = time?? new TimeData();
             Gate = gate;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new DelayData(Time.Clone(), Gate);
+        
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Delay((DelayData)data);
+    }
+
+    public class Delay: Device {
+        public new DelayData Data => (DelayData)Data;
+
+        public readonly Time Time;
+
+        void FreeChanged(int value)
+            => Data.Viewer?.SetDurationValue(value);
+
+        void ModeChanged(bool value)
+            => Data.Viewer?.SetMode(value);
+
+        void StepChanged(Length value)
+            => Data.Viewer?.SetDurationStep(value);
+
+        public Delay(DelayData data): base(data, "delay") {
+            Time = Data.Time.Activate();
+
+            Time.Minimum = 1;
+            Time.Maximum = 30000;
+
+            Time.FreeChanged += FreeChanged;
+            Time.ModeChanged += ModeChanged;
+            Time.StepChanged += StepChanged;
+        }
+
         public override void MIDIProcess(List<Signal> n)
-            => Schedule(() => InvokeExit(n), Heaven.Time + _time * _gate);
+            => Schedule(() => InvokeExit(n), Heaven.Time + Time * Data.Gate);
 
         public override void Dispose() {
             if (Disposed) return;
@@ -79,7 +75,7 @@ namespace Apollo.Devices {
         }
         
         public class DurationUndoEntry: SimplePathUndoEntry<Delay, int> {
-            protected override void Action(Delay item, int element) => item.Time.Free = element;
+            protected override void Action(Delay item, int element) => item.Time.Data.Free = element;
             
             public DurationUndoEntry(Delay delay, int u, int r)
             : base($"Delay Duration Changed to {r}ms", delay, u, r) {}
@@ -89,7 +85,7 @@ namespace Apollo.Devices {
         }
         
         public class DurationModeUndoEntry: SimplePathUndoEntry<Delay, bool> {
-            protected override void Action(Delay item, bool element) => item.Time.Mode = element;
+            protected override void Action(Delay item, bool element) => item.Time.Data.Mode = element;
             
             public DurationModeUndoEntry(Delay delay, bool u, bool r)
             : base($"Delay Duration Switched to {(r? "Steps" : "Free")}", delay, u, r) {}
@@ -99,7 +95,7 @@ namespace Apollo.Devices {
         }
         
         public class DurationStepUndoEntry: SimplePathUndoEntry<Delay, int> {
-            protected override void Action(Delay item, int element) => item.Time.Length.Step = element;
+            protected override void Action(Delay item, int element) => item.Time.Data.Length.Step = element;
             
             public DurationStepUndoEntry(Delay delay, int u, int r)
             : base($"Delay Duration Changed to {Length.Steps[r]}", delay, u, r) {}
@@ -109,7 +105,7 @@ namespace Apollo.Devices {
         }
         
         public class GateUndoEntry: SimplePathUndoEntry<Delay, double> {
-            protected override void Action(Delay item, double element) => item.Gate = element;
+            protected override void Action(Delay item, double element) => item.Data.Gate = element;
             
             public GateUndoEntry(Delay delay, double u, double r)
             : base($"Delay Gate Changed to {r}%", delay, u / 100, r / 100) {}

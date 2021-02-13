@@ -62,7 +62,7 @@ namespace Apollo.DeviceViewers {
                 Fill = color.ToBrush()
             };
             thumbs.Insert(index, thumb);
-            Canvas.SetLeft(thumb, _fade.GetPosition(index) * Gradient.Width);
+            Canvas.SetLeft(thumb, _fade.Data.Positions[index] * Gradient.Width);
 
             thumb.Moved += Thumb_Move;
             thumb.Focused += Thumb_Focus;
@@ -72,15 +72,15 @@ namespace Apollo.DeviceViewers {
             thumb.TypeChanged += Thumb_ChangeFadeType;
             
             canvas.Children.Add(thumb);
-            if (_fade.Expanded != null && index <= _fade.Expanded) _fade.Expanded++;
+            if (_fade.Data.Expanded != null && index <= _fade.Data.Expanded) _fade.Data.Expanded++;
 
             UpdateThumbMenus();
         }
 
         public void Contents_Remove(int index) {
-            if (_fade.Expanded != null) {
-                if (index < _fade.Expanded) _fade.Expanded--;
-                else if (index == _fade.Expanded) Expand(null);
+            if (_fade.Data.Expanded != null) {
+                if (index < _fade.Data.Expanded) _fade.Data.Expanded--;
+                else if (index == _fade.Data.Expanded) Expand(null);
             }
 
             canvas.Children.Remove(thumbs[index]);
@@ -97,19 +97,19 @@ namespace Apollo.DeviceViewers {
             _fade = fade;
             _fade.Generated += Gradient_Generate;
 
-            PlaybackMode.SelectedIndex = (int)_fade.PlayMode;
+            PlaybackMode.SelectedIndex = (int)_fade.Data.PlayMode;
 
-            Duration.UsingSteps = _fade.Time.Mode;
+            Duration.UsingSteps = _fade.Time.Data.Mode;
             Duration.Length = _fade.Time.Length;
-            Duration.RawValue = _fade.Time.Free;
+            Duration.RawValue = _fade.Time.Data.Free;
 
-            Gate.RawValue = _fade.Gate * 100;
+            Gate.RawValue = _fade.Data.Gate * 100;
 
-            int? temp = _fade.Expanded;
-            _fade.Expanded = null;
+            int? temp = _fade.Data.Expanded;
+            _fade.Data.Expanded = null;
             
-            for (int i = 0; i < _fade.Count; i++)
-                Contents_Insert(i, _fade.GetColor(i));
+            for (int i = 0; i < _fade.Data.Count; i++)
+                Contents_Insert(i, _fade.Data.Colors[i]);
 
             Expand(temp);
 
@@ -126,15 +126,15 @@ namespace Apollo.DeviceViewers {
         }
 
         public void Expand(int? index) {
-            if (_fade.Expanded != null) {
+            if (_fade.Data.Expanded != null) {
                 PickerContainer.MaxWidth = 0;
-                thumbs[_fade.Expanded.Value].Unselect();
+                thumbs[_fade.Data.Expanded.Value].Unselect();
 
                 PositionText.Text = "";
                 Display.Text = "";
 
-                if (index == _fade.Expanded) {
-                    _fade.Expanded = null;
+                if (index == _fade.Data.Expanded) {
+                    _fade.Data.Expanded = null;
                     return;
                 }
             }
@@ -143,15 +143,15 @@ namespace Apollo.DeviceViewers {
                 PickerContainer.MaxWidth = double.PositiveInfinity;
                 thumbs[index.Value].Select();
 
-                if (index != 0 && index != _fade.Count - 1) {
+                if (index != 0 && index != _fade.Data.Count - 1) {
                     PositionText.Text = "Position:";
-                    Display.Text = $"{(Math.Round(_fade.GetPosition(index.Value) * 1000) / 10).ToString()}%";
+                    Display.Text = $"{(Math.Round(_fade.Data.Positions[index.Value] * 1000) / 10).ToString()}%";
                 }
 
-                Picker.SetColor(_fade.GetColor(index.Value));
+                Picker.SetColor(_fade.Data.Colors[index.Value]);
             }
             
-            _fade.Expanded = index;
+            _fade.Data.Expanded = index;
         }
 
         void UpdateThumbMenus() {
@@ -224,7 +224,7 @@ namespace Apollo.DeviceViewers {
             newType
         ));
 
-        public FadeType GetFadeType(FadeThumb sender) => _fade.GetFadeType(thumbs.IndexOf(sender));
+        public FadeType GetFadeType(FadeThumb sender) => _fade.Data.Types[thumbs.IndexOf(sender)];
 
         void Thumb_Move(FadeThumb sender, double change, double? total) {
             int i = thumbs.IndexOf(sender);
@@ -256,24 +256,24 @@ namespace Apollo.DeviceViewers {
         public void SetPosition(int index, double position) {
             Canvas.SetLeft(thumbs[index], position * Gradient.Width);
 
-            if (index == _fade.Expanded)
-                Display.Text = $"{(Math.Round(_fade.GetPosition(index) * 1000) / 10).ToString()}%";
+            if (index == _fade.Data.Expanded)
+                Display.Text = $"{(Math.Round(_fade.Data.Positions[index] * 1000) / 10).ToString()}%";
         }
 
         void Thumb_Focus(FadeThumb sender) => Expand(thumbs.IndexOf(sender));
 
         void Color_Changed(Color color, Color old) {
-            if (_fade.Expanded != null && old != null)
+            if (_fade.Data.Expanded != null && old != null)
                 Program.Project.Undo.AddAndExecute(new Fade.ColorUndoEntry(
                     _fade, 
-                    _fade.Expanded.Value, 
+                    _fade.Data.Expanded.Value, 
                     old.Clone(), 
                     color.Clone()
                 ));
         }
 
         public void SetColor(int index, Color color) {
-            if (_fade.Expanded == index)
+            if (_fade.Data.Expanded == index)
                 Picker.SetColor(color);
 
             thumbs[index].Fill = color.ToBrush();
@@ -293,9 +293,9 @@ namespace Apollo.DeviceViewers {
 
                 for (int i = 0; i < points.Count; i++) {
                     if (i > 0 && points[i - 1].IsHold)
-                        gradient.GradientStops.Add(new GradientStop(points[i - 1].Color.ToAvaloniaColor(), (points[i].Time - .0000000001) / (_fade.Time * _fade.Gate)));
+                        gradient.GradientStops.Add(new GradientStop(points[i - 1].Color.ToAvaloniaColor(), (points[i].Time - .0000000001) / (_fade.RealTime)));
 
-                    gradient.GradientStops.Add(new GradientStop(points[i].Color.ToAvaloniaColor(), points[i].Time / (_fade.Time * _fade.Gate)));
+                    gradient.GradientStops.Add(new GradientStop(points[i].Color.ToAvaloniaColor(), points[i].Time / (_fade.RealTime)));
                 }
             });
         }
@@ -347,10 +347,10 @@ namespace Apollo.DeviceViewers {
         void PlaybackMode_Changed(object sender, SelectionChangedEventArgs e) {
             FadePlaybackType selected = (FadePlaybackType)PlaybackMode.SelectedIndex;
 
-            if (_fade.PlayMode != selected)
+            if (_fade.Data.PlayMode != selected)
                 Program.Project.Undo.AddAndExecute(new Fade.PlaybackModeUndoEntry(
                     _fade, 
-                    _fade.PlayMode, 
+                    _fade.Data.PlayMode, 
                     selected
                 ));
         }
@@ -363,14 +363,14 @@ namespace Apollo.DeviceViewers {
             if (text == null) return;
             if (text == "") return;
 
-            Input_Update = () => { Input.Text = (Math.Round(_fade.GetPosition(_fade.Expanded.Value) * 1000) / 10).ToString(); };
+            Input_Update = () => { Input.Text = (Math.Round(_fade.Data.Positions[_fade.Data.Expanded.Value] * 1000) / 10).ToString(); };
 
             if (double.TryParse(text, out double value)) {
-                double min = _fade.GetPosition(_fade.Expanded.Value - 1) * 100 + 0.5;
-                double max = _fade.GetPosition(_fade.Expanded.Value + 1) * 100 - 0.5;
+                double min = _fade.Data.Positions[_fade.Data.Expanded.Value - 1] * 100 + 0.5;
+                double max = _fade.Data.Positions[_fade.Data.Expanded.Value + 1] * 100 - 0.5;
 
                 if (min <= value && value <= max) {
-                    _fade.SetPosition(_fade.Expanded.Value, value / 100);
+                    _fade.Data.SetPosition(_fade.Data.Expanded.Value, value / 100);
                     Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush"); };
                 } else {
                     Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ErrorBrush"); };
@@ -402,7 +402,7 @@ namespace Apollo.DeviceViewers {
             PointerUpdateKind MouseButton = e.GetCurrentPoint(this).Properties.PointerUpdateKind;
 
             if (MouseButton == PointerUpdateKind.LeftButtonPressed && e.ClickCount == 2) {
-                oldValue = Math.Round(_fade.GetPosition(_fade.Expanded.Value) * 1000) / 10;
+                oldValue = Math.Round(_fade.Data.Positions[_fade.Data.Expanded.Value] * 1000) / 10;
                 Input.Text = oldValue.ToString();
 
                 Input.SelectionStart = 0;
@@ -418,7 +418,7 @@ namespace Apollo.DeviceViewers {
         }
         
         void Input_LostFocus(object sender, RoutedEventArgs e) {
-            double raw = _fade.GetPosition(_fade.Expanded.Value);
+            double raw = _fade.Data.Positions[_fade.Data.Expanded.Value];
 
             Input.Text = (Math.Round(raw * 1000) / 10).ToString();
 
@@ -427,7 +427,7 @@ namespace Apollo.DeviceViewers {
             
             Program.Project.Undo.AddAndExecute(new Fade.ThumbMoveUndoEntry(
                 _fade, 
-                _fade.Expanded.Value, 
+                _fade.Data.Expanded.Value, 
                 oldValue / 100, 
                 raw
             ));
@@ -484,8 +484,8 @@ namespace Apollo.DeviceViewers {
                 Gradient.Width = width;
                 canvas.Width = width + 14;
 
-                for (int i = 0; i < _fade.Count; i++)
-                    Canvas.SetLeft(thumbs[i], _fade.GetPosition(i) * Gradient.Width);
+                for (int i = 0; i < _fade.Data.Count; i++)
+                    Canvas.SetLeft(thumbs[i], _fade.Data.Positions[i] * Gradient.Width);
             }
         }
     }

@@ -23,8 +23,8 @@ namespace Apollo.Binary {
 
             typeof(Group),
             typeof(CopyData),
-            typeof(Delay),
-            typeof(Fade),
+            typeof(DelayData),
+            typeof(FadeData),
             typeof(FlipData),
             typeof(Hold),
             typeof(KeyFilter),

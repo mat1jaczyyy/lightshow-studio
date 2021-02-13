@@ -188,6 +188,9 @@ namespace Apollo.Devices {
         public Copy(CopyData data): base(data, "copy") {
             Offsets = Data.Offsets.Select(i => i.Activate()).ToList();
 
+            foreach (Offset offset in Offsets)
+                offset.Changed += OffsetChanged;
+
             Time = Data.Time.Activate();
 
             Time.Minimum = 1;
@@ -196,9 +199,6 @@ namespace Apollo.Devices {
             Time.FreeChanged += FreeChanged;
             Time.ModeChanged += ModeChanged;
             Time.StepChanged += StepChanged;
-
-            foreach (Offset offset in Offsets)
-                offset.Changed += OffsetChanged;
         }
 
         record DoubleTuple(double X, double Y) {
