@@ -37,15 +37,15 @@ namespace Apollo.DeviceViewers {
 
             _hold = hold;
 
-            Duration.UsingSteps = _hold.Time.Mode;
+            Duration.UsingSteps = _hold.Time.Data.Mode;
             Duration.Length = _hold.Time.Length;
-            Duration.RawValue = _hold.Time.Free;
+            Duration.RawValue = _hold.Time.Data.Free;
 
-            Gate.RawValue = _hold.Gate * 100;
+            Gate.RawValue = _hold.Data.Gate * 100;
 
-            SetHoldMode(_hold.HoldMode); // required to set Dial Enabled properties
+            SetHoldMode(_hold.Data.HoldMode); // required to set Dial Enabled properties
 
-            Release.IsChecked = _hold.Release;
+            Release.IsChecked = _hold.Data.Release;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _hold = null;
@@ -97,10 +97,10 @@ namespace Apollo.DeviceViewers {
         void HoldMode_Changed(object sender, SelectionChangedEventArgs e) {
             HoldType selected = (HoldType)HoldMode.SelectedIndex;
 
-            if (_hold.HoldMode != selected) 
+            if (_hold.Data.HoldMode != selected) 
                 Program.Project.Undo.AddAndExecute(new Hold.HoldModeUndoEntry(
                     _hold,
-                    _hold.HoldMode,
+                    _hold.Data.HoldMode,
                     selected,
                     HoldMode.Items
                 ));
@@ -116,10 +116,10 @@ namespace Apollo.DeviceViewers {
         void Release_Changed(object sender, RoutedEventArgs e) {
             bool value = Release.IsChecked.Value;
 
-            if (_hold.Release != value) 
+            if (_hold.Data.Release != value) 
                 Program.Project.Undo.AddAndExecute(new Hold.ReleaseUndoEntry(
                     _hold, 
-                    _hold.Release, 
+                    _hold.Data.Release, 
                     value
                 ));
         }

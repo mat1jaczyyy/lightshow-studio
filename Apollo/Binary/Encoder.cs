@@ -292,7 +292,7 @@ namespace Apollo.Binary {
         }
 
         public static void Encode(BinaryWriter writer, FadeData o) {
-            EncodeID(writer, typeof(Fade));
+            EncodeID(writer, typeof(FadeData));
 
             Encode(writer, o.Time);
             writer.Write(o.Gate);
@@ -320,8 +320,8 @@ namespace Apollo.Binary {
             writer.Write(o.Bypass);
         }
 
-        public static void Encode(BinaryWriter writer, Hold o) {
-            EncodeID(writer, typeof(Hold));
+        public static void Encode(BinaryWriter writer, HoldData o) {
+            EncodeID(writer, typeof(HoldData));
 
             Encode(writer, o.Time);
             writer.Write(o.Gate);
