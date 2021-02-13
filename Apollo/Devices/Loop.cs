@@ -24,7 +24,7 @@ namespace Apollo.Devices {
                 _rate = value;
 
                 if (_rate != null) {
-                    _rate.Minimum = 10;
+                    _rate.Minimum = 1;
                     _rate.Maximum = 30000;
 
                     _rate.FreeChanged += FreeChanged;
