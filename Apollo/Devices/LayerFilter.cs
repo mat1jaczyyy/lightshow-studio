@@ -51,7 +51,7 @@ namespace Apollo.Devices {
     public class LayerFilter: Device {
         public new LayerFilterData Data => (LayerFilterData)Data;
 
-        public LayerFilter(LayerFilterData data): base(data, "layerfilter", "Layer Filter") {}
+        public LayerFilter(LayerFilterData data): base(data?? new(), "layerfilter", "Layer Filter") {}
 
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit(n.Where(i => Math.Abs(i.Layer - Data.Target) <= Data.Range).ToList());

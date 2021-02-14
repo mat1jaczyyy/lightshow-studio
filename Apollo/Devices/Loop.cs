@@ -79,7 +79,7 @@ namespace Apollo.Devices {
 
         public double RealTime => Rate * Data.Gate;
                
-        public Loop(LoopData data): base(data, "loop") {
+        public Loop(LoopData data): base(data?? new(), "loop") {
             Rate = Data.Rate.Activate();
 
             Rate.Minimum = 1;

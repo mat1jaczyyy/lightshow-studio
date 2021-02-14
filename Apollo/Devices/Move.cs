@@ -56,7 +56,7 @@ namespace Apollo.Devices {
         void OffsetChanged(Offset sender)
             => Data.Viewer?.SetOffset(Offset);
 
-        public Move(MoveData data): base(data, "move") {
+        public Move(MoveData data): base(data?? new(), "move") {
             Offset = Data.Offset.Activate();
             Offset.Changed += OffsetChanged;
         }

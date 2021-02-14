@@ -46,7 +46,7 @@ namespace Apollo.Devices {
     public class KeyFilter: Device {
         public new KeyFilterData Data => (KeyFilterData)Data;
 
-        public KeyFilter(KeyFilterData data): base(data, "keyfilter", "Key Filter") {}
+        public KeyFilter(KeyFilterData data): base(data?? new(), "keyfilter", "Key Filter") {}
 
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit(n.Where(i => Data[i.Index]).ToList());

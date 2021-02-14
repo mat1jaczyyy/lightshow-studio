@@ -51,7 +51,7 @@ namespace Apollo.Devices {
         void StepChanged(Length value)
             => Data.Viewer?.SetDurationStep(value);
 
-        public Delay(DelayData data): base(data, "delay") {
+        public Delay(DelayData data = null): base(data?? new(), "delay") {
             Time = Data.Time.Activate();
 
             Time.Minimum = 1;

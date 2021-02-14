@@ -61,7 +61,7 @@ namespace Apollo.Devices {
     public class Layer: Device {
         public new LayerData Data => (LayerData)Data;
 
-        public Layer(LayerData data): base(data, "layer") {}
+        public Layer(LayerData data): base(data?? new(), "layer") {}
 
         public override void MIDIProcess(List<Signal> n) {
             n.ForEach(i => {

@@ -48,7 +48,7 @@ namespace Apollo.Devices {
     public class Flip: Device {
         public new FlipData Data => (FlipData)Data;
 
-        public Flip(FlipData data): base(data, "flip") {}
+        public Flip(FlipData data): base(data?? new(), "flip") {}
 
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit((Data.Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {

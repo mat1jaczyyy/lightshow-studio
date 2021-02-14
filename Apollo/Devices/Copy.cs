@@ -185,7 +185,7 @@ namespace Apollo.Devices {
         void StepChanged(Length value)
             => Data.Viewer?.SetRateStep(value);
 
-        public Copy(CopyData data): base(data, "copy") {
+        public Copy(CopyData data): base(data?? new(), "copy") {
             Offsets = Data.Offsets.Select(i => i.Activate()).ToList();
 
             foreach (Offset offset in Offsets)

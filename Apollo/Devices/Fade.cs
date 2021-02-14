@@ -270,7 +270,7 @@ namespace Apollo.Devices {
             Generate();
         }
 
-        public Fade(FadeData data): base(data, "fade") {
+        public Fade(FadeData data): base(data?? new(), "fade") {
             Time = Data.Time.Activate();
 
             Time.Minimum = 1;

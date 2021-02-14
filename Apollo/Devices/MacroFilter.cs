@@ -65,7 +65,7 @@ namespace Apollo.Devices {
     public class MacroFilter: Device {
         public new MacroFilterData Data => (MacroFilterData)Data;
 
-        public MacroFilter(MacroFilterData data): base(data, "macrofilter", "Macro Filter") {}
+        public MacroFilter(MacroFilterData data): base(data?? new(), "macrofilter", "Macro Filter") {}
 
         public override void MIDIProcess(List<Signal> n) 
             => InvokeExit(n.Where(i => Data[i.GetMacro(Data.Macro) - 1]).ToList());
