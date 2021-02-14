@@ -11,24 +11,36 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Output: Device {
+    public class OutputData: DeviceData {
+        public OutputViewer Viewer => Instance?.SpecificViewer<OutputViewer>();
+
         int _target;
         public int Target {
             get => _target;
             set {
-                if (_target != value) {
-                    _target = value;
-                    
-                    if (Viewer?.SpecificViewer != null) ((OutputViewer)Viewer.SpecificViewer).SetTarget(Target);
-                }
+                _target = value;
+                
+                Viewer?.SetTarget(Target);
             }
         }
+
+        public OutputData(int target = 0)
+            => Target = target;
+
+        protected override DeviceData CloneSpecific()
+            => new OutputData();
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Output((OutputData)data);
+    }
+
+    public class Output: Device {
+        public new OutputData Data => (OutputData)Data;
 
         void IndexChanged(int value) {
             if (Track.Get(this)?.IsDisposing != false) return;
 
-            _target = value;
-            if (Viewer?.SpecificViewer != null) ((OutputViewer)Viewer.SpecificViewer).SetTarget(Target);
+            Data.Target = value;
         }
 
         void IndexRemoved() {
@@ -44,42 +56,23 @@ namespace Apollo.Devices {
             }
 
             if (!redoing)
-                Program.Project.Undo.History.Last().AddPost(new IndexRemovedFix(this, Target));
+                Program.Project.Undo.History.Last().AddPost(new IndexRemovedFix(this, Data.Target));
 
-            Target = owner.ParentIndex.Value;
-            if (Viewer?.SpecificViewer != null) ((OutputViewer)Viewer.SpecificViewer).SetTarget(Target);
+            Data.Target = owner.ParentIndex.Value;
         }
 
-        public Launchpad Launchpad => Program.Project.Tracks[Target].Launchpad;
-
-        public override Device Clone() => new Output(Target) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Output(int target = -1): base("output") {
-            if (target < 0) target = Track.Get(this).ParentIndex.Value;
-            _target = target;
+        public Output(OutputData data): base(data?? new(), "output") {
+            if (data == null)
+                Data.Target = Track.Get(this).ParentIndex.Value;
         }
 
         public override void MIDIProcess(List<Signal> n) {
-            n.ForEach(i => i.Source = Launchpad);
+            n.ForEach(i => i.Source = Program.Project.Tracks[Data.Target].Launchpad);
             InvokeExit(n);
-        }
-
-        public override void Dispose() {
-            if (Disposed) return;
-
-            if (Program.Project.Tracks.ElementAtOrDefault(_target) is Track track) {
-                track.ParentIndexChanged -= IndexChanged;
-                track.Disposing -= IndexRemoved;
-            }
-
-            base.Dispose();
         }
         
         public class TargetUndoEntry: SimplePathUndoEntry<Output, int> {
-            protected override void Action(Output item, int element) => item.Target = element;
+            protected override void Action(Output item, int element) => item.Data.Target = element;
             
             public TargetUndoEntry(Output output, int u, int r)
             : base($"Output Target Changed to {r}", output, u - 1, r - 1) {}
@@ -91,7 +84,7 @@ namespace Apollo.Devices {
         public class IndexRemovedFix: PathUndoEntry<Output> {
             int target;
 
-            protected override void UndoPath(params Output[] items) => items[0].Target = target;
+            protected override void UndoPath(params Output[] items) => items[0].Data.Target = target;
 
             protected override void OnRedo() {}
 

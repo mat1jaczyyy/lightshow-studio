@@ -35,7 +35,7 @@ namespace Apollo.DeviceViewers {
             Program.Project.TrackCountChanged += Update_Maximum;
 
             Update_Maximum(Program.Project.Tracks.Count);
-            SetTarget(_output.Target);
+            SetTarget(_output.Data.Target);
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) {

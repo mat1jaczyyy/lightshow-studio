@@ -31,7 +31,7 @@ namespace Apollo.Binary {
             typeof(LayerData),
             typeof(MoveData),
             typeof(Multi),
-            typeof(Output),
+            typeof(OutputData),
             typeof(MacroFilterData),
             typeof(Switch),
             typeof(Paint),

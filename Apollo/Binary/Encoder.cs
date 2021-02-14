@@ -386,8 +386,8 @@ namespace Apollo.Binary {
             writer.Write((int)o.Mode);
         }
 
-        public static void Encode(BinaryWriter writer, Output o) {
-            EncodeID(writer, typeof(Output));
+        public static void Encode(BinaryWriter writer, OutputData o) {
+            EncodeID(writer, typeof(OutputData));
 
             writer.Write(o.Target);
         }
