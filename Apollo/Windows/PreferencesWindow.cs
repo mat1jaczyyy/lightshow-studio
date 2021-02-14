@@ -159,7 +159,7 @@ namespace Apollo.Windows {
             ToolTip.SetTip(this.Get<TextBlock>("LaunchpadHeader"), $"RtMidi APIs:\n{string.Join("- \n", MidiDeviceManager.Default.GetAvailableMidiApis())}");
 
             fade.MIDIExit = FadeExit;
-            fade.Initialize();
+            //fade.Initialize();
 
             AlwaysOnTop.IsChecked = Preferences.AlwaysOnTop;
             CenterTrackContents.IsChecked = Preferences.CenterTrackContents;

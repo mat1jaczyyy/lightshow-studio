@@ -279,17 +279,6 @@ namespace Apollo.Devices {
             Time.FreeChanged += FreeChanged;
             Time.ModeChanged += ModeChanged;
             Time.StepChanged += StepChanged;
-
-            Initialize();
-        }
-
-        protected override void Initialized() {
-            Generate();
-
-            Preferences.FPSLimitChanged += Generate;
-
-            if (Program.Project != null)
-                Program.Project.BPMChanged += Generate;
         }
 
         ConcurrentDictionary<Signal, Signal> buffer = new();
@@ -325,8 +314,6 @@ namespace Apollo.Devices {
                             InvokeExit(new List<Signal>() {i.With(color: fade[index].Color.Clone())});
                         }
                     };
-
-                    if (fade == null) Initialize();
 
                     Schedule(Next, start += fade[1].Time - fade[0].Time);
 

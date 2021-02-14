@@ -88,28 +88,6 @@ namespace Apollo.Elements {
             Name = name?? this.GetType().ToString().Split(".").Last();
         }
 
-        bool ListeningToProjectLoaded = false;
-
-        protected virtual void Initialized() {}
-
-        public void Initialize() {
-            if (!Disposed) {
-                if (Program.Project == null) {
-                    Program.ProjectLoaded += Initialize;
-                    ListeningToProjectLoaded = true;
-                    return;
-                }
-
-                if (Track.Get(this) != null)
-                    Initialized();
-            }
-
-            if (ListeningToProjectLoaded) {
-                Program.ProjectLoaded -= Initialize;
-                ListeningToProjectLoaded = false;
-            }
-        }
-
         public void InvokeExit(List<Signal> n) {
             if (!(n is StopSignal) && !n.Any()) return;
 

@@ -67,13 +67,8 @@ namespace Apollo.Core {
                     if (Directory.Exists(Program.CrashDir))
                         File.Delete(Program.CrashProject);
                 
-                } else {
+                } else
                     _project.WriteCrashBackup();
-
-                    ProjectLoaded?.Invoke();
-                }
-                
-                ProjectLoaded = null;
             }
         }
 

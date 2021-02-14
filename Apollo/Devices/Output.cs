@@ -17,12 +17,7 @@ namespace Apollo.Devices {
             get => _target;
             set {
                 if (_target != value) {
-                    Program.Project.Tracks[_target].ParentIndexChanged -= IndexChanged;
-                    Program.Project.Tracks[_target].Disposing -= IndexRemoved;
-                    
                     _target = value;
-                    Program.Project.Tracks[_target].ParentIndexChanged += IndexChanged;
-                    Program.Project.Tracks[_target].Disposing += IndexRemoved;
                     
                     if (Viewer?.SpecificViewer != null) ((OutputViewer)Viewer.SpecificViewer).SetTarget(Target);
                 }
@@ -65,14 +60,6 @@ namespace Apollo.Devices {
         public Output(int target = -1): base("output") {
             if (target < 0) target = Track.Get(this).ParentIndex.Value;
             _target = target;
-
-            if (Program.Project?.TrackOperation == true) Program.Project.TrackOperationFinished += Initialize;
-            else Initialize();
-        }
-
-        protected override void Initialized() {
-            Program.Project.Tracks[_target].ParentIndexChanged += IndexChanged;
-            Program.Project.Tracks[_target].Disposing += IndexRemoved;
         }
 
         public override void MIDIProcess(List<Signal> n) {
