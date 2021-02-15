@@ -439,8 +439,8 @@ namespace Apollo.Binary {
             writer.Write(o.Expanded);
         }
 
-        public static void Encode(BinaryWriter writer, Preview o) {
-            EncodeID(writer, typeof(Preview));
+        public static void Encode(BinaryWriter writer, PreviewData o) {
+            EncodeID(writer, typeof(PreviewData));
         }
 
         public static void Encode(BinaryWriter writer, Rotate o) {
