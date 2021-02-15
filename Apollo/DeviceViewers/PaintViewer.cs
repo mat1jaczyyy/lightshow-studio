@@ -29,7 +29,7 @@ namespace Apollo.DeviceViewers {
 
             _paint = paint;
 
-            Picker.SetColor(_paint.Color);
+            Picker.SetColor(_paint.Data.Color);
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _paint = null;

@@ -34,7 +34,7 @@ namespace Apollo.Binary {
             typeof(OutputData),
             typeof(MacroFilterData),
             typeof(Switch),
-            typeof(Paint),
+            typeof(PaintData),
             typeof(Pattern),
             typeof(Preview),
             typeof(Rotate),

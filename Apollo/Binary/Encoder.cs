@@ -408,10 +408,10 @@ namespace Apollo.Binary {
             writer.Write(o.Value);
         }
 
-        public static void Encode(BinaryWriter writer, Paint o) {
-            EncodeID(writer, typeof(Paint));
+        public static void Encode(BinaryWriter writer, PaintData o) {
+            EncodeID(writer, typeof(PaintData));
 
-            Encode(writer, o.Color);
+            Encode(writer, o.Data.Color);
         }
 
         public static void Encode(BinaryWriter writer, Pattern o) {
