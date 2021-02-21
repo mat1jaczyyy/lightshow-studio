@@ -29,7 +29,7 @@ namespace Apollo.DeviceViewers {
             _refresh = refresh;
             
             for (int i = 0; i < 4; i++)
-                Macros[i].IsChecked = _refresh.GetMacro(i);
+                Macros[i].IsChecked = _refresh.Data.GetMacro(i);
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _refresh = null;
@@ -39,11 +39,11 @@ namespace Apollo.DeviceViewers {
             int index = Array.IndexOf(Macros, source);
             bool value = source.IsChecked.Value;
 
-            if (_refresh.GetMacro(index) != value) 
+            if (_refresh.Data.GetMacro(index) != value) 
                 Program.Project.Undo.AddAndExecute(new Refresh.MacroUndoEntry(
                     _refresh, 
                     index, 
-                    _refresh.GetMacro(index), 
+                    _refresh.Data.GetMacro(index), 
                     value
                 ));
         }

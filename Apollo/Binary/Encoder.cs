@@ -450,8 +450,8 @@ namespace Apollo.Binary {
             writer.Write(o.Bypass);
         }
 
-        public static void Encode(BinaryWriter writer, Refresh o) {
-            EncodeID(writer, typeof(Refresh));
+        public static void Encode(BinaryWriter writer, RefreshData o) {
+            EncodeID(writer, typeof(RefreshData));
 
             for (int i = 0; i < 4; i++)
                 writer.Write(o.GetMacro(i));
