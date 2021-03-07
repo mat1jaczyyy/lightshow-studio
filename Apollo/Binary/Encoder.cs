@@ -443,8 +443,8 @@ namespace Apollo.Binary {
             EncodeID(writer, typeof(PreviewData));
         }
 
-        public static void Encode(BinaryWriter writer, Rotate o) {
-            EncodeID(writer, typeof(Rotate));
+        public static void Encode(BinaryWriter writer, RotateData o) {
+            EncodeID(writer, typeof(RotateData));
 
             writer.Write((int)o.Mode);
             writer.Write(o.Bypass);

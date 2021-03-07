@@ -31,8 +31,8 @@ namespace Apollo.DeviceViewers {
 
             _rotate = rotate;
 
-            RotateMode.SelectedIndex = (int)_rotate.Mode;
-            Bypass.IsChecked = _rotate.Bypass;
+            RotateMode.SelectedIndex = (int)_rotate.Data.Mode;
+            Bypass.IsChecked = _rotate.Data.Bypass;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _rotate = null;
@@ -40,10 +40,10 @@ namespace Apollo.DeviceViewers {
         void Mode_Changed(object sender, SelectionChangedEventArgs e) {
             RotateType selected = (RotateType)RotateMode.SelectedIndex;
 
-            if (_rotate.Mode != selected)
+            if (_rotate.Data.Mode != selected)
                 Program.Project.Undo.AddAndExecute(new Rotate.ModeUndoEntry(
                     _rotate, 
-                    _rotate.Mode,
+                    _rotate.Data.Mode,
                     selected,
                     RotateMode.Items
                 ));
@@ -54,10 +54,10 @@ namespace Apollo.DeviceViewers {
         void Bypass_Changed(object sender, RoutedEventArgs e) {
             bool value = Bypass.IsChecked.Value;
 
-            if (_rotate.Bypass != value)
+            if (_rotate.Data.Bypass != value)
                 Program.Project.Undo.AddAndExecute(new Rotate.BypassUndoEntry(
                     _rotate, 
-                    _rotate.Bypass, 
+                    _rotate.Data.Bypass, 
                     value
                 ));
         }

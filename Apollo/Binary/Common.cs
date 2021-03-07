@@ -37,7 +37,7 @@ namespace Apollo.Binary {
             typeof(PaintData),
             typeof(Pattern),
             typeof(PreviewData),
-            typeof(Rotate),
+            typeof(RotateData),
             typeof(Tone),
 
             typeof(Color),

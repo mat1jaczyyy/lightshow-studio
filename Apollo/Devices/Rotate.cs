@@ -10,14 +10,16 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Rotate: Device {
+    public class RotateData: DeviceData {
+        RotateViewer Viewer => Instance?.SpecificViewer<RotateViewer>();
+
         RotateType _mode;
         public RotateType Mode {
             get => _mode;
             set {
                 _mode = value;
                 
-                if (Viewer?.SpecificViewer != null) ((RotateViewer)Viewer.SpecificViewer).SetMode(Mode);
+                Viewer?.SetMode(Mode);
             }
         }
 
@@ -27,39 +29,46 @@ namespace Apollo.Devices {
             set {
                 _bypass = value;
                 
-                if (Viewer?.SpecificViewer != null) ((RotateViewer)Viewer.SpecificViewer).SetBypass(Bypass);
+                Viewer?.SetBypass(Bypass);
             }
         }
 
-        public override Device Clone() => new Rotate(Mode, Bypass) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Rotate(RotateType mode = RotateType.D90, bool bypass = false): base("rotate") {
+        public RotateData(RotateType mode = RotateType.D90, bool bypass = false) {
             Mode = mode;
             Bypass = bypass;
         }
 
-        public override void MIDIProcess(List<Signal> n)
-            => InvokeExit((Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {
-                if (i.Index == 100) 
-                    return Bypass? Enumerable.Empty<Signal>() : new [] {i};
+        protected override DeviceData CloneSpecific()
+            => new RotateData(Mode, Bypass);
 
-                if (Mode == RotateType.D90)
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Rotate((RotateData)data);
+    }
+
+    public class Rotate: Device {
+        public new RotateData Data => (RotateData)Data;
+
+        public Rotate(RotateData data): base(data?? new(), "rotate") {}
+
+        public override void MIDIProcess(List<Signal> n)
+            => InvokeExit((Data.Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {
+                if (i.Index == 100) 
+                    return Data.Bypass? Enumerable.Empty<Signal>() : new [] {i};
+
+                if (Data.Mode == RotateType.D90)
                     i.Index = (byte)((9 - i.Index % 10) * 10 + i.Index / 10);
 
-                else if (Mode == RotateType.D180)
+                else if (Data.Mode == RotateType.D180)
                     i.Index = (byte)((9 - i.Index / 10) * 10 + 9 - i.Index % 10);
 
-                else if (Mode == RotateType.D270)
+                else if (Data.Mode == RotateType.D270)
                     i.Index = (byte)((i.Index % 10) * 10 + 9 - i.Index / 10);
 
                 return new [] {i};
             })).ToList());
         
         public class ModeUndoEntry: EnumSimplePathUndoEntry<Rotate, RotateType> {
-            protected override void Action(Rotate item, RotateType element) => item.Mode = element;
+            protected override void Action(Rotate item, RotateType element) => item.Data.Mode = element;
             
             public ModeUndoEntry(Rotate rotate, RotateType u, RotateType r, IEnumerable source)
             : base("Rotate Angle", rotate, u, r, source) {}
@@ -70,7 +79,7 @@ namespace Apollo.Devices {
         }
         
         public class BypassUndoEntry: SimplePathUndoEntry<Rotate, bool> {
-            protected override void Action(Rotate item, bool element) => item.Bypass = element;
+            protected override void Action(Rotate item, bool element) => item.Data.Bypass = element;
             
             public BypassUndoEntry(Rotate rotate, bool u, bool r)
             : base($"Rotate Bypass Changed to {(r? "Enabled" : "Disabled")}", rotate, u, r) {}
