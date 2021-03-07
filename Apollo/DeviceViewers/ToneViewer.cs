@@ -33,11 +33,11 @@ namespace Apollo.DeviceViewers {
 
             _tone = tone;
 
-            Hue.RawValue = _tone.Hue;
-            SaturationHigh.RawValue = _tone.SaturationHigh * 100;
-            SaturationLow.RawValue = _tone.SaturationLow * 100;
-            ValueHigh.RawValue = _tone.ValueHigh * 100;
-            ValueLow.RawValue = _tone.ValueLow * 100;
+            Hue.RawValue = _tone.Data.Hue;
+            SaturationHigh.RawValue = _tone.Data.SaturationHigh * 100;
+            SaturationLow.RawValue = _tone.Data.SaturationLow * 100;
+            ValueHigh.RawValue = _tone.Data.ValueHigh * 100;
+            ValueLow.RawValue = _tone.Data.ValueLow * 100;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _tone = null;

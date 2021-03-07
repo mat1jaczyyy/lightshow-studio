@@ -7,7 +7,9 @@ using Apollo.Structures;
 using Apollo.Undo;
 
 namespace Apollo.Devices {
-    public class Tone: Device {
+    public class ToneData: DeviceData {
+        ToneViewer Viewer => Instance?.SpecificViewer<ToneViewer>();
+
         double _h, _sh, _sl, _vh, _vl;
 
         public double Hue {
@@ -16,7 +18,7 @@ namespace Apollo.Devices {
                 if (-180 <= value && value <= 180 && _h != value) {
                     _h = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ToneViewer)Viewer.SpecificViewer).SetHue(Hue);
+                    Viewer?.SetHue(Hue);
                 }
             }
         }
@@ -27,7 +29,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _sh != value) {
                     _sh = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ToneViewer)Viewer.SpecificViewer).SetSaturationHigh(SaturationHigh);
+                    Viewer?.SetSaturationHigh(SaturationHigh);
                 }
             }
         }
@@ -38,7 +40,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _sl != value) {
                     _sl = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ToneViewer)Viewer.SpecificViewer).SetSaturationLow(SaturationLow);
+                    Viewer?.SetSaturationLow(SaturationLow);
                 }
             }
         }
@@ -49,7 +51,7 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _vh != value) {
                     _vh = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ToneViewer)Viewer.SpecificViewer).SetValueHigh(ValueHigh);
+                    Viewer?.SetValueHigh(ValueHigh);
                 }
             }
         }
@@ -60,17 +62,12 @@ namespace Apollo.Devices {
                 if (0 <= value && value <= 1 && _vl != value) {
                     _vl = value;
 
-                    if (Viewer?.SpecificViewer != null) ((ToneViewer)Viewer.SpecificViewer).SetValueLow(ValueLow);
+                    Viewer?.SetValueLow(ValueLow);
                 }
             }
         }
 
-        public override Device Clone() => new Tone(Hue, SaturationHigh, SaturationLow, ValueHigh, ValueLow) {
-            Collapsed = Collapsed,
-            Enabled = Enabled
-        };
-
-        public Tone(double hue = 0, double saturation_high = 1, double saturation_low = 0, double value_high = 1, double value_low = 0): base("tone") {
+        public ToneData(double hue = 0, double saturation_high = 1, double saturation_low = 0, double value_high = 1, double value_low = 0) {
             Hue = hue;
 
             SaturationHigh = saturation_high;
@@ -80,14 +77,26 @@ namespace Apollo.Devices {
             ValueLow = value_low;
         }
 
+        protected override DeviceData CloneSpecific()
+            => new ToneData(Hue, SaturationHigh, SaturationLow, ValueHigh, ValueLow);
+
+        protected override Device ActivateSpecific(DeviceData data)
+            => new Tone((ToneData)data);
+    }
+
+    public class Tone: Device {
+        public new ToneData Data => (ToneData)Data;
+
+        public Tone(ToneData data): base(data?? new(), "tone") {}
+
         public override void MIDIProcess(List<Signal> n) {
             n.ForEach(i => {
                 if (i.Color.Lit) {
                     (double hue, double saturation, double value) = i.Color.ToHSV();
 
-                    hue = (hue + Hue + 360) % 360;
-                    saturation = saturation * (SaturationHigh - SaturationLow) + SaturationLow;
-                    value = value * (ValueHigh - ValueLow) + ValueLow;
+                    hue = (hue + Data.Hue + 360) % 360;
+                    saturation = saturation * (Data.SaturationHigh - Data.SaturationLow) + Data.SaturationLow;
+                    value = value * (Data.ValueHigh - Data.ValueLow) + Data.ValueLow;
 
                     i.Color = Color.FromHSV(hue, saturation, value);
                 }
@@ -97,7 +106,7 @@ namespace Apollo.Devices {
         }
         
         public class HueUndoEntry: SimplePathUndoEntry<Tone, double> {
-            protected override void Action(Tone item, double element) => item.Hue = element;
+            protected override void Action(Tone item, double element) => item.Data.Hue = element;
             
             public HueUndoEntry(Tone tone, double u, double r)
             : base($"Tone Hue Changed to {r}°", tone, u, r) {}
@@ -107,7 +116,7 @@ namespace Apollo.Devices {
         }
         
         public class SatHighUndoEntry: SimplePathUndoEntry<Tone, double> {
-            protected override void Action(Tone item, double element) => item.SaturationHigh = element;
+            protected override void Action(Tone item, double element) => item.Data.SaturationHigh = element;
             
             public SatHighUndoEntry(Tone tone, double u, double r)
             : base($"Tone Sat Hi Changed to {r}%", tone, u / 100, r / 100) {}
@@ -117,7 +126,7 @@ namespace Apollo.Devices {
         }
         
         public class SatLowUndoEntry: SimplePathUndoEntry<Tone, double> {
-            protected override void Action(Tone item, double element) => item.SaturationLow = element;
+            protected override void Action(Tone item, double element) => item.Data.SaturationLow = element;
             
             public SatLowUndoEntry(Tone tone, double u, double r)
             : base($"Tone Sat Lo Changed to {r}%", tone, u / 100, r / 100) {}
@@ -127,7 +136,7 @@ namespace Apollo.Devices {
         }
         
         public class ValueHighUndoEntry: SimplePathUndoEntry<Tone, double> {
-            protected override void Action(Tone item, double element) => item.ValueHigh = element;
+            protected override void Action(Tone item, double element) => item.Data.ValueHigh = element;
             
             public ValueHighUndoEntry(Tone tone, double u, double r)
             : base($"Tone Value Hi Changed to {r}%", tone, u / 100, r / 100) {}
@@ -137,7 +146,7 @@ namespace Apollo.Devices {
         }
         
         public class ValueLowUndoEntry: SimplePathUndoEntry<Tone, double> {
-            protected override void Action(Tone item, double element) => item.ValueLow = element;
+            protected override void Action(Tone item, double element) => item.Data.ValueLow = element;
             
             public ValueLowUndoEntry(Tone tone, double u, double r)
             : base($"Tone Value Lo Changed to {r}%", tone, u / 100, r / 100) {}

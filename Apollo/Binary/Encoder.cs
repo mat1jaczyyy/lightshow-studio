@@ -411,7 +411,7 @@ namespace Apollo.Binary {
         public static void Encode(BinaryWriter writer, PaintData o) {
             EncodeID(writer, typeof(PaintData));
 
-            Encode(writer, o.Data.Color);
+            Encode(writer, o.Color);
         }
 
         public static void Encode(BinaryWriter writer, Pattern o) {
@@ -457,8 +457,8 @@ namespace Apollo.Binary {
                 writer.Write(o.GetMacro(i));
         }
 
-        public static void Encode(BinaryWriter writer, Tone o) {
-            EncodeID(writer, typeof(Tone));
+        public static void Encode(BinaryWriter writer, ToneData o) {
+            EncodeID(writer, typeof(ToneData));
 
             writer.Write(o.Hue);
 
