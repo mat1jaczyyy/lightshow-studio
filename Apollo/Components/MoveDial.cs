@@ -152,13 +152,13 @@ namespace Apollo.Components {
         }
 
         public void Update(Offset offset) {
-            X = offset.X;
-            Y = offset.Y;
+            X = offset.Data.X;
+            Y = offset.Data.Y;
 
-            AbsoluteX = offset.AbsoluteX;
-            AbsoluteY = offset.AbsoluteY;
+            AbsoluteX = offset.Data.AbsoluteX;
+            AbsoluteY = offset.Data.AbsoluteY;
 
-            PlaneCanvas.IsVisible = !(AbsoluteCanvas.IsVisible = offset.IsAbsolute);
+            PlaneCanvas.IsVisible = !(AbsoluteCanvas.IsVisible = offset.Data.IsAbsolute);
             DrawPoint();
         }
 
