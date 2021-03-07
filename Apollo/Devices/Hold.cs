@@ -80,7 +80,7 @@ namespace Apollo.Devices {
         void StepChanged(Length value)
             => Data.Viewer?.SetDurationStep(value);
 
-        public Hold(HoldData data): base(data?? new(), "hold") {
+        public Hold(HoldData data = null): base(data?? new(), "hold") {
             Time = Data.Time.Activate();
 
             Time.Minimum = 1;

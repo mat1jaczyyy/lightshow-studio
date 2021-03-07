@@ -100,7 +100,7 @@ namespace Apollo.Devices {
     public class ColorFilter: Device {
         public new ColorFilterData Data => (ColorFilterData)Data;
 
-        public ColorFilter(ColorFilterData data): base(data?? new(), "colorfilter", "Color Filter") {}
+        public ColorFilter(ColorFilterData data = null): base(data?? new(), "colorfilter", "Color Filter") {}
 
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit(n.Where(i => {

@@ -48,7 +48,7 @@ namespace Apollo.Devices {
     public class Rotate: Device {
         public new RotateData Data => (RotateData)Data;
 
-        public Rotate(RotateData data): base(data?? new(), "rotate") {}
+        public Rotate(RotateData data = null): base(data?? new(), "rotate") {}
 
         public override void MIDIProcess(List<Signal> n)
             => InvokeExit((Data.Bypass? n.Select(i => i.Clone()) : Enumerable.Empty<Signal>()).Concat(n.SelectMany(i => {

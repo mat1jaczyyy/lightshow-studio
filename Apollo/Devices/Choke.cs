@@ -62,7 +62,7 @@ namespace Apollo.Devices {
             }
         }
 
-        public Choke(ChokeData data): base(data?? new(), "choke") {
+        public Choke(ChokeData data = null): base(data?? new(), "choke") {
             Chain = data.Chain.Activate();
 
             Chain.Parent = this;

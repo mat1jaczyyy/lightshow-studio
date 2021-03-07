@@ -36,7 +36,7 @@ namespace Apollo.Devices {
     public class Refresh: Device {
         public new RefreshData Data => (RefreshData)Data;
 
-        public Refresh(RefreshData data): base(data?? new(), "refresh") {}
+        public Refresh(RefreshData data = null): base(data?? new(), "refresh") {}
 
         public override void MIDIProcess(List<Signal> n) {
             n.ForEach(i => {

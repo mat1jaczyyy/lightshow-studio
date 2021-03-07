@@ -61,7 +61,7 @@ namespace Apollo.Devices {
             Data.Target = owner.ParentIndex.Value;
         }
 
-        public Output(OutputData data): base(data?? new(), "output") {
+        public Output(OutputData data = null): base(data?? new(), "output") {
             if (data == null)
                 Data.Target = Track.Get(this).ParentIndex.Value;
         }

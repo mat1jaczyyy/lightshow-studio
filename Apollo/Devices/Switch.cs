@@ -51,7 +51,7 @@ namespace Apollo.Devices {
     public class Switch: Device {
         public new SwitchData Data => (SwitchData)Data;
 
-        public Switch(SwitchData data): base(data?? new(), "switch") {}
+        public Switch(SwitchData data = null): base(data?? new(), "switch") {}
 
         public override void MIDIProcess(List<Signal> n) {
             if (n.Any(i => !i.Color.Lit))

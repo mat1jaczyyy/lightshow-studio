@@ -87,7 +87,7 @@ namespace Apollo.Devices {
     public class Tone: Device {
         public new ToneData Data => (ToneData)Data;
 
-        public Tone(ToneData data): base(data?? new(), "tone") {}
+        public Tone(ToneData data = null): base(data?? new(), "tone") {}
 
         public override void MIDIProcess(List<Signal> n) {
             n.ForEach(i => {

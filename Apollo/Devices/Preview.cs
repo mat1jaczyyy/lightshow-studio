@@ -33,7 +33,7 @@ namespace Apollo.Devices {
             Data.Viewer?.Clear();
         }
 
-        public Preview(PreviewData data): base(data?? new(), "preview") {
+        public Preview(PreviewData data = null): base(data?? new(), "preview") {
             screen = new Screen() { ScreenExit = PreviewExit };
             
             Clear += HandleClear;

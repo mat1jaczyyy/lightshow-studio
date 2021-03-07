@@ -36,7 +36,7 @@ namespace Apollo.Devices {
     public class Clear: Device {
         public new ClearData Data => (ClearData)Data;
         
-        public Clear(ClearData data): base(data?? new(), "clear") {}
+        public Clear(ClearData data = null): base(data?? new(), "clear") {}
 
         public override void MIDIProcess(List<Signal> n) {
             if (n.Any(i => !i.Color.Lit)) {
