@@ -142,7 +142,11 @@ namespace Apollo.Elements {
         }
 
         void MIDIEnter(Signal n) {
-            if (ParentIndex != null && Enabled) Chain?.MIDIEnter(n);
+            if (ParentIndex != null && Enabled) {
+                try {
+                    Chain?.MIDIEnter(n.Clone());
+                } catch (KeyNotFoundException) {} // Ignore KeyNotFound race conditions in devices that have dictionaries
+            }
         }
 
         public void Dispose() {

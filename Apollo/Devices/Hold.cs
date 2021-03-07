@@ -101,6 +101,9 @@ namespace Apollo.Devices {
                 buffer[k] = s.Color;
             
             if (s.Color.Lit != Data.ActualRelease) {
+                if (!buffer.ContainsKey(k))  // happens if receives 0 as first input (issue #428)
+                    return new Signal[] {};
+
                 s.Color = buffer[k];
                 
                 if (Data.HoldMode != HoldType.Infinite) {

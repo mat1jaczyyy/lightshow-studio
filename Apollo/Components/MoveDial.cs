@@ -90,7 +90,7 @@ namespace Apollo.Components {
         public int AbsoluteY {
             get => _ay;
             set {
-                value = Math.Clamp(value, 0, 9));
+                value = Math.Clamp(value, 0, 9);
                 if (value != _ay) {
                     _ay = value;
                     DrawPoint();

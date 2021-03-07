@@ -42,14 +42,24 @@ namespace Apollo.Elements {
 
         public override void Send(List<RawUpdate> n, Color[] snapshot) => Target?.Send(n, snapshot);
 
-        public override void Clear(bool manual = false) {
-            if (!Available || (manual && PatternWindow != null)) return;
+        bool AbletonClear(bool manual = false) {
+            if (!Available || (manual && PatternWindow != null)) return false;
 
             if (Version >= 1)
                 AbletonConnector.SendClear(this);
+
+            return true;
         }
 
-        public override void ForceClear() => Clear();
+        public override void Clear(bool manual = false) {
+            if (AbletonClear(manual))
+                Target?.Clear(manual);
+        }
+
+        public override void ForceClear() {
+            if (AbletonClear())
+                Target?.ForceClear();
+        }
 
         public override void Render(Signal n) => Target?.Render(n);
 
