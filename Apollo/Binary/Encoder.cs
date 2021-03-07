@@ -401,8 +401,8 @@ namespace Apollo.Binary {
                 writer.Write(o[i]);
         }
 
-        public static void Encode(BinaryWriter writer, Switch o) {
-            EncodeID(writer, typeof(Switch));
+        public static void Encode(BinaryWriter writer, SwitchData o) {
+            EncodeID(writer, typeof(SwitchData));
 
             writer.Write(o.Target);
             writer.Write(o.Value);

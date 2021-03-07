@@ -31,8 +31,8 @@ namespace Apollo.DeviceViewers {
 
             _switch = macroswitch;
 
-            Target.RawValue = _switch.Target;
-            Value.RawValue = _switch.Value;
+            Target.RawValue = _switch.Data.Target;
+            Value.RawValue = _switch.Data.Value;
         }
 
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => _switch = null;
