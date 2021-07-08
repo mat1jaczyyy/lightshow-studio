@@ -37,12 +37,16 @@
       <Setter Property="BorderBrush" Value="{DynamicResource ThemeButtonEnabledBrush}"/>
     </Style>
 
-    <Style Selector="RadioButton:pointerover /template/ Ellipse#border">
-      <Setter Property="Stroke" Value="{DynamicResource ThemeButtonEnabledBrush}"/>
-    </Style>
-
     <Style Selector="ComboBox">
       <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ContextMenu > TextBlock#PART_InputGestureText">
+      <Setter Property="Margin" Value="5 0 0 0" />
+    </Style>
+
+    <Style Selector="RadioButton:pointerover /template/ Ellipse#border">
+      <Setter Property="Stroke" Value="{DynamicResource ThemeButtonEnabledBrush}"/>
     </Style>
 
     <Style Selector="ScrollBar /template/ RepeatButton.repeat">
@@ -50,10 +54,10 @@
     </Style>
 
     <Style Selector="Separator">
-      <Setter Property="Margin" Value="0 2" />
+      <Setter Property="Margin" Value="0 2 0 1" />
       <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Height" Value="1" />
+      <Setter Property="BorderThickness" Value="0 1 0 0" />
+      <Setter Property="Height" Value="2" />
     </Style>
     
     <Style Selector="StackPanel.collapseAnimation">
@@ -62,6 +66,18 @@
           <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
         </Transitions>
       </Setter>
+    </Style>
+
+    <Style Selector="TabItem">
+      <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock">
+      <Setter Property="Padding" Value="0 0 0 1" />
+    </Style>
+
+    <Style Selector="TextBox /template/ Border#border">
+      <Setter Property="Padding" Value="0 0 0 1" />
     </Style>
 
     <Style Selector="ToolTip">

@@ -44,9 +44,11 @@ namespace Apollo.Components {
 
             ports.Add(MIDI.NoOutput);
 
-            Items = ports;
-            SelectedIndex = -1;
-            SelectedItem = selected;
+            try {
+                Items = ports;
+                SelectedIndex = -1;
+                SelectedItem = selected;
+            } catch {}
         }
 
         void Update() => Update((Launchpad)SelectedItem);

@@ -23,7 +23,7 @@ namespace Apollo.DeviceViewers {
         KeyFilter _filter;
         LaunchpadGrid Grid;
 
-        SolidColorBrush GetColor(bool value) => (SolidColorBrush)Application.Current.Styles.FindResource(value? "ThemeAccentBrush" : "ThemeForegroundLowBrush");
+        SolidColorBrush GetColor(bool value) => App.GetResource<SolidColorBrush>(value? "ThemeAccentBrush" : "ThemeForegroundLowBrush");
 
         public KeyFilterViewer() => new InvalidOperationException();
 

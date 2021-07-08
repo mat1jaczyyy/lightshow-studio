@@ -53,7 +53,7 @@ namespace Apollo.Viewers {
         }
 
         public void Select() {
-            ApplyHeaderBrush((IBrush)Application.Current.Styles.FindResource("ThemeAccentBrush2"));
+            ApplyHeaderBrush(App.GetResource<IBrush>("ThemeAccentBrush2"));
             Selected = true;
         }
 
@@ -96,7 +96,7 @@ namespace Apollo.Viewers {
             DragDrop = null;
         }
 
-        public void SetEnabled() => NameText.Foreground = (IBrush)Application.Current.Styles.FindResource(_chain.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
+        public void SetEnabled() => NameText.Foreground = App.GetResource<IBrush>(_chain.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
 
         void Chain_Action(string action) => Track.Get(_chain)?.Window?.Selection.Action(action, (ISelectParent)_chain.Parent, _chain.ParentIndex.Value);
     

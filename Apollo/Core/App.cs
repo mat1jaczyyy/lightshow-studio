@@ -74,6 +74,11 @@ namespace Apollo.Core {
             UseShellExecute = true
         });
 
+        public static T GetResource<T>(string res)
+            => Application.Current.Styles.TryGetResource(res, out object ret) && ret is T final
+                ? final
+                : default;
+
         public override void Initialize() {
             AvaloniaXamlLoader.Load(this);
 

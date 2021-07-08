@@ -19,14 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.999-cibuild0006058-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.999-cibuild0006058-beta" />
-    <PackageReference Include="DiscordRichPresence" Version="1.0.121">
+    <PackageReference Include="Avalonia" Version="0.10.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.4" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.4" />
+    <PackageReference Include="DiscordRichPresence" Version="1.0.166">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Humanizer.Core" Version="2.6.2" />
-    <PackageReference Include="Octokit" Version="0.32.0" />
-    <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="Octokit" Version="0.48.0" />
   </ItemGroup>
   
   <ItemGroup>

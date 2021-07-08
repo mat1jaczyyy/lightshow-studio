@@ -58,7 +58,7 @@ namespace Apollo.Components {
         });
 
         public void Clear() {
-            SolidColorBrush color = (SolidColorBrush)Application.Current.Styles.FindResource("ThemeForegroundLowBrush");
+            SolidColorBrush color = App.GetResource<SolidColorBrush>("ThemeForegroundLowBrush");
             for (int i = -1; i < 100; i++) SetColor(i, color);
         }
 

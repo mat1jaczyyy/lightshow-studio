@@ -3,8 +3,8 @@
        x:Class="Apollo.Themes.Dark">
   
   <Style.Resources>
-    <Image Source="/Resources/SplashWhite.png" x:Key="SplashImage" />
-    <Image Source="/Resources/UpdateWhite.png" x:Key="UpdateImage" />
+    <Image RenderOptions.BitmapInterpolationMode="HighQuality" Source="/Resources/SplashWhite.png" x:Key="SplashImage" />
+    <Image RenderOptions.BitmapInterpolationMode="HighQuality" Source="/Resources/UpdateWhite.png" x:Key="UpdateImage" />
 
     <Color x:Key="ThemeBackgroundColor">#FF191919</Color>
     <Color x:Key="ThemeSplashColor">#FF0A0A0A</Color>

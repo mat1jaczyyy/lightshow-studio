@@ -315,7 +315,7 @@ namespace Apollo.Components {
 
             Arc.StrokeThickness = stroke * _scale;
             if (!overrideBase) {
-                Arc.Stroke = (IBrush)Application.Current.Styles.FindResource(Enabled? color : "ThemeForegroundLowBrush");
+                Arc.Stroke = App.GetResource<IBrush>(Enabled? color : "ThemeForegroundLowBrush");
                 Display.Text = (Enabled || !DisplayDisabledText)? ValueString : DisabledText;
             }
             
@@ -373,7 +373,10 @@ namespace Apollo.Components {
             observable.Dispose();
         }
 
-        protected void LayoutChanged(object sender, EventArgs e) => DrawArcAuto();
+        protected void LayoutChanged(object sender, EventArgs e) {
+            DrawArcAuto();
+            ((Grid)Content).LayoutUpdated -= LayoutChanged;
+        }
 
         bool mouseHeld = false;
         double oldValue;
@@ -464,9 +467,9 @@ namespace Apollo.Components {
             if (double.TryParse(text, out double value)) {
                 if (Minimum <= value && value <= Maximum) {
                     RawValue = value;
-                    Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush"); };
+                    Input_Update = () => { Input.Foreground = App.GetResource<IBrush>("ThemeForegroundBrush"); };
                 } else {
-                    Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ErrorBrush"); };
+                    Input_Update = () => { Input.Foreground = App.GetResource<IBrush>("ErrorBrush"); };
                 }
 
                 Input_Update += () => {

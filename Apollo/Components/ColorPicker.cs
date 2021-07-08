@@ -168,7 +168,7 @@ namespace Apollo.Components {
             Preview.Fill = Color.ToScreenBrush();
 
             UpdateText();
-            Hex.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush");
+            Hex.Foreground = App.GetResource<IBrush>("ThemeForegroundBrush");
         }
 
         void UpdateCanvas() {
@@ -345,14 +345,14 @@ namespace Apollo.Components {
         bool Hex_Dirty, RGB_Dirty = false;
 
         Action HexAction(string text) {
-            Action update = () => Hex.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush");
+            Action update = () => Hex.Foreground = App.GetResource<IBrush>("ThemeForegroundBrush");
 
             foreach (char i in text)
                 if (!"0123456789ABCDEF".Contains(i))
                     return update + (() => UpdateText());
 
             if (text.Length > 6) return update + (() => UpdateText());
-            if (text.Length < 6) return () => Hex.Foreground = (IBrush)Application.Current.Styles.FindResource("ErrorBrush");
+            if (text.Length < 6) return () => Hex.Foreground = App.GetResource<IBrush>("ErrorBrush");
 
             int r = Convert.ToInt32(text.Substring(0, 2), 16);
             int g = Convert.ToInt32(text.Substring(2, 2), 16);

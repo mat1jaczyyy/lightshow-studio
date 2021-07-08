@@ -27,7 +27,7 @@ namespace Apollo.Components {
             Path.Classes.Add(name);
 
             if (name == "corner")
-                Path.Data = (StreamGeometry)Application.Current.Styles.FindResource($"LPGrid_{Index}CornerGeometry");
+                Path.Data = App.GetResource<StreamGeometry>($"LPGrid_{Index}CornerGeometry");
         }
 
         public bool Empty => Canvas.Classes.Contains("empty");

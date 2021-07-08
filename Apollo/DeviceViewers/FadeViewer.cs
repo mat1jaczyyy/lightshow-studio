@@ -371,9 +371,9 @@ namespace Apollo.DeviceViewers {
 
                 if (min <= value && value <= max) {
                     _fade.SetPosition(_fade.Expanded.Value, value / 100);
-                    Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush"); };
+                    Input_Update = () => { Input.Foreground = App.GetResource<IBrush>("ThemeForegroundBrush"); };
                 } else {
-                    Input_Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ErrorBrush"); };
+                    Input_Update = () => { Input.Foreground = App.GetResource<IBrush>("ErrorBrush"); };
                 }
 
                 Input_Update += () => {

@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
 using Apollo.Components;
+using Apollo.Core;
 using Apollo.Devices;
 using Apollo.Elements;
 using Apollo.Selection;
@@ -73,7 +74,7 @@ namespace Apollo.Viewers {
         protected MenuItem DeviceMute, GroupMute, ChokeMute;
 
         protected virtual void ApplyHeaderBrush(string resource) {
-            IBrush brush = (IBrush)Application.Current.Styles.FindResource(resource);
+            IBrush brush = App.GetResource<IBrush>(resource);
 
             if (Root.Children[0] is DeviceHead targetHead) {
                 if (IsArrangeValid) targetHead.Header.Background = brush;
@@ -138,9 +139,9 @@ namespace Apollo.Viewers {
         }
 
         public virtual void SetEnabled() {
-            Border.Background = (IBrush)Application.Current.Styles.FindResource(_device.Enabled? "ThemeControlHighBrush" : "ThemeControlMidBrush");
-            Border.BorderBrush = (IBrush)Application.Current.Styles.FindResource(_device.Enabled? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
-            TitleText.Foreground = (IBrush)Application.Current.Styles.FindResource(_device.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
+            Border.Background = App.GetResource<IBrush>(_device.Enabled? "ThemeControlHighBrush" : "ThemeControlMidBrush");
+            Border.BorderBrush = App.GetResource<IBrush>(_device.Enabled? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
+            TitleText.Foreground = App.GetResource<IBrush>(_device.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
 
             if (Root.Children[0] is DeviceHead targetHead)
                 targetHead.SetEnabled(_device.Enabled);

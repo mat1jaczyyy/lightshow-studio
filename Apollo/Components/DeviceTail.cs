@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
+using Apollo.Core;
 using Apollo.Elements;
 using Apollo.Viewers;
 
@@ -38,8 +39,8 @@ namespace Apollo.Components {
         void Unloaded(object sender, VisualTreeAttachmentEventArgs e) => Owner = null;
 
         public void SetEnabled(bool value) {
-            Border.Background = (IBrush)Application.Current.Styles.FindResource(value? "ThemeControlHighBrush" : "ThemeControlMidBrush");
-            Border.BorderBrush = (IBrush)Application.Current.Styles.FindResource(value? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
+            Border.Background = App.GetResource<IBrush>(value? "ThemeControlHighBrush" : "ThemeControlMidBrush");
+            Border.BorderBrush = App.GetResource<IBrush>(value? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
         }
 
         void Drag(object sender, PointerPressedEventArgs e) => Owner.Drag(sender, e);

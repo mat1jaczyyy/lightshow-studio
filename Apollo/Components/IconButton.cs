@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 
+using Apollo.Core;
+
 namespace Apollo.Components {
     public abstract class IconButton: UserControl {
         public delegate void ClickedEventHandler();
@@ -21,7 +23,7 @@ namespace Apollo.Components {
 
                 mouseHeld = false;
 
-                Fill = (IBrush)Application.Current.Styles.FindResource(Enabled
+                Fill = App.GetResource<IBrush>(Enabled
                     ? (mouseOver
                         ? "ThemeButtonOverBrush"
                         : "ThemeButtonEnabledBrush"
@@ -36,12 +38,12 @@ namespace Apollo.Components {
         bool mouseOver = false;
 
         protected void MouseEnter(object sender, PointerEventArgs e) {
-            if (Enabled) Fill = (IBrush)Application.Current.Styles.FindResource(mouseHeld? "ThemeButtonDownBrush" : "ThemeButtonOverBrush");
+            if (Enabled) Fill = App.GetResource<IBrush>(mouseHeld? "ThemeButtonDownBrush" : "ThemeButtonOverBrush");
             mouseOver = true;
         }
 
         protected void MouseLeave(object sender, PointerEventArgs e) {
-            if (Enabled) Fill = (IBrush)Application.Current.Styles.FindResource("ThemeButtonEnabledBrush");
+            if (Enabled) Fill = App.GetResource<IBrush>("ThemeButtonEnabledBrush");
             mouseHeld = mouseOver = false;
         }
 
@@ -51,7 +53,7 @@ namespace Apollo.Components {
             if (MouseButton == PointerUpdateKind.LeftButtonPressed || (AllowRightClick && MouseButton == PointerUpdateKind.RightButtonPressed)) {
                 mouseHeld = true;
 
-                if (Enabled) Fill = (IBrush)Application.Current.Styles.FindResource("ThemeButtonDownBrush");
+                if (Enabled) Fill = App.GetResource<IBrush>("ThemeButtonDownBrush");
             }
         }
 

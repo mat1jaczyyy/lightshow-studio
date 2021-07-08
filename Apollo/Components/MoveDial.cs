@@ -259,9 +259,9 @@ namespace Apollo.Components {
             if (int.TryParse(text, out int value)) {
                 if ((AbsoluteCanvas.IsVisible? 0 : -9) <= value && value <= 9) {
                     RawValue = value;
-                    Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ThemeForegroundBrush"); };
+                    Update = () => { Input.Foreground = App.GetResource<IBrush>("ThemeForegroundBrush"); };
                 } else {
-                    Update = () => { Input.Foreground = (IBrush)Application.Current.Styles.FindResource("ErrorBrush"); };
+                    Update = () => { Input.Foreground = App.GetResource<IBrush>("ErrorBrush"); };
                 }
 
                 Update += () => {

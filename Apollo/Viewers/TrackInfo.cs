@@ -48,7 +48,7 @@ namespace Apollo.Viewers {
         void UpdateText(int index) => Rename.UpdateText();
         
         void ApplyHeaderBrush(string resource) {
-            IBrush brush = (IBrush)Application.Current.Styles.FindResource(resource);
+            IBrush brush = App.GetResource<IBrush>(resource);
 
             if (IsArrangeValid) DropZone.Background = brush;
             else this.Resources["BackgroundBrush"] = brush;
@@ -99,7 +99,7 @@ namespace Apollo.Viewers {
             DragDrop = null;
         }
 
-        public virtual void SetEnabled() => NameText.Foreground = PortSelector.Foreground = (IBrush)Application.Current.Styles.FindResource(_track.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
+        public virtual void SetEnabled() => NameText.Foreground = PortSelector.Foreground = App.GetResource<IBrush>(_track.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
         
         void Track_Action(string action) => Program.Project.Window?.Selection.Action(action, Program.Project, _track.ParentIndex.Value);
 

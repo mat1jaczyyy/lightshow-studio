@@ -4,6 +4,8 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 
+using Apollo.Core;
+
 namespace Apollo.Components {
     public abstract class AddButton: UserControl {
         public delegate void AddedEventHandler();
@@ -33,11 +35,11 @@ namespace Apollo.Components {
         bool mouseHeld = false;
 
         protected void MouseEnter(object sender, PointerEventArgs e) {
-            Fill = (IBrush)Application.Current.Styles.FindResource(mouseHeld? "ThemeButtonDownBrush" : "ThemeButtonOverBrush");
+            Fill = App.GetResource<IBrush>(mouseHeld? "ThemeButtonDownBrush" : "ThemeButtonOverBrush");
         }
 
         protected void MouseLeave(object sender, PointerEventArgs e) {
-            Fill = (IBrush)Application.Current.Styles.FindResource("ThemeButtonEnabledBrush");
+            Fill = App.GetResource<IBrush>("ThemeButtonEnabledBrush");
             mouseHeld = false;
         }
 
@@ -47,7 +49,7 @@ namespace Apollo.Components {
             if (MouseButton == PointerUpdateKind.LeftButtonPressed || (AllowRightClick && MouseButton == PointerUpdateKind.RightButtonPressed)) {
                 mouseHeld = true;
 
-                Fill = (IBrush)Application.Current.Styles.FindResource("ThemeButtonDownBrush");
+                Fill = App.GetResource<IBrush>("ThemeButtonDownBrush");
             }
         }
 

@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 
+using Apollo.Core;
 using Apollo.Windows;
 
 namespace Apollo.Components {
@@ -33,7 +34,7 @@ namespace Apollo.Components {
 
             base.MouseLeave(this, null);
 
-            Hole.Fill = (SolidColorBrush)Application.Current.Styles.FindResource("ThemeBorderMidBrush");
+            Hole.Fill = App.GetResource<SolidColorBrush>("ThemeBorderMidBrush");
         }
 
         protected override void Click(PointerReleasedEventArgs e) => PreferencesWindow.Create((Window)this.GetVisualRoot());

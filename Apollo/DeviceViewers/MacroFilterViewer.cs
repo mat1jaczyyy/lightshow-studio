@@ -27,7 +27,7 @@ namespace Apollo.DeviceViewers {
         UniformGrid MacrosGrid;
         Dial MacroDial;
 
-        void SetColor(MacroRectangle rect, bool value) => rect.Fill = (IBrush)Application.Current.Styles.FindResource(value? "ThemeExtraBrush" : "ThemeForegroundLowBrush");
+        void SetColor(MacroRectangle rect, bool value) => rect.Fill = App.GetResource<IBrush>(value? "ThemeExtraBrush" : "ThemeForegroundLowBrush");
 
         public MacroFilterViewer() => new InvalidOperationException();
 

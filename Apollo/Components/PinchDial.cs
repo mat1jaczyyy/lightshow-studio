@@ -5,6 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 
+using Apollo.Core;
+
 namespace Apollo.Components {
     public class PinchDial: Dial {
         public override bool UsingSteps {
@@ -56,7 +58,7 @@ namespace Apollo.Components {
             ArcBase.StrokeThickness = stroke * Scale;
             ArcBase.IsVisible = Enabled;
 
-            Arc.Stroke = (IBrush)Application.Current.Styles.FindResource(Enabled? color : "ThemeForegroundLowBrush");
+            Arc.Stroke = App.GetResource<IBrush>(Enabled? color : "ThemeForegroundLowBrush");
             Arc.StrokeThickness = stroke * Scale / 2;
             
             ArcBase.Data = Arc.Data = CreateGeometry(IsBilateral? "C {2} {3} {4} {5}" : "Q {2} {3}", value);

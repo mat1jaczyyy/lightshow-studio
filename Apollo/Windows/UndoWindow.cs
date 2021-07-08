@@ -89,14 +89,14 @@ namespace Apollo.Windows {
                 ((UndoEntryInfo)(Contents.Children[saved.Value])).Background = SolidColorBrush.Parse("Transparent");
 
             if ((saved = index).HasValue && index != current)
-                ((UndoEntryInfo)(Contents.Children[saved.Value])).Background = (SolidColorBrush)Application.Current.Styles.FindResource("ThemeControlVeryHighBrush");
+                ((UndoEntryInfo)(Contents.Children[saved.Value])).Background = App.GetResource<SolidColorBrush>("ThemeControlVeryHighBrush");
         }
 
         public void HighlightPosition(int index) {
             if (current.HasValue)
                 ((UndoEntryInfo)(Contents.Children[current.Value])).Background = SolidColorBrush.Parse("Transparent");
             
-            ((UndoEntryInfo)(Contents.Children[(current = index).Value])).Background = (SolidColorBrush)Application.Current.Styles.FindResource("ThemeAccentBrush2");
+            ((UndoEntryInfo)(Contents.Children[(current = index).Value])).Background = App.GetResource<SolidColorBrush>("ThemeAccentBrush2");
         
             if (Program.Project.Undo.SavedPosition.HasValue)
                 HighlightSaved(Program.Project.Undo.SavedPosition.Value);

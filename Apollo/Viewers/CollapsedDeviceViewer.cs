@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
+using Apollo.Core;
 using Apollo.Components;
 using Apollo.Elements;
 using Apollo.Selection;
@@ -29,7 +30,7 @@ namespace Apollo.Viewers {
         }
 
         protected override void ApplyHeaderBrush(string resource) {
-            IBrush brush = (IBrush)Application.Current.Styles.FindResource(resource);
+            IBrush brush = App.GetResource<IBrush>(resource);
 
             if (IsArrangeValid) Header.Background = brush;
             else this.Resources["TitleBrush"] = brush;
@@ -67,8 +68,8 @@ namespace Apollo.Viewers {
         }
 
         public override void SetEnabled() {
-            Header.BorderBrush = (IBrush)Application.Current.Styles.FindResource(_device.Enabled? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
-            TitleText.Foreground = (IBrush)Application.Current.Styles.FindResource(_device.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
+            Header.BorderBrush = App.GetResource<IBrush>(_device.Enabled? "ThemeBorderMidBrush" : "ThemeBorderLowBrush");
+            TitleText.Foreground = App.GetResource<IBrush>(_device.Enabled? "ThemeForegroundBrush" : "ThemeForegroundLowBrush");
         }
     }
 }

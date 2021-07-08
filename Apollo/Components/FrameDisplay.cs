@@ -9,6 +9,7 @@ using AvaloniaColor = Avalonia.Media.Color;
 using IBrush = Avalonia.Media.IBrush;
 using SolidColorBrush = Avalonia.Media.SolidColorBrush;
 
+using Apollo.Core;
 using Apollo.Devices;
 using Apollo.Selection;
 using Apollo.Structures;
@@ -45,7 +46,7 @@ namespace Apollo.Components {
         }
 
         public void Select() {
-            ApplyHeaderBrush((IBrush)Application.Current.Styles.FindResource("ThemeAccentBrush2"));
+            ApplyHeaderBrush(App.GetResource<IBrush>("ThemeAccentBrush2"));
             Selected = true;
         }
 

@@ -129,7 +129,7 @@ namespace Apollo.Windows {
             TitleCenter.Opacity = 1 - result;
         }
 
-        public virtual void SetEnabled() => Background = (IBrush)Application.Current.Styles.FindResource(_track.Enabled? "ThemeControlMidBrush" : "ThemeControlLowBrush");
+        public virtual void SetEnabled() => Background = App.GetResource<IBrush>(_track.Enabled? "ThemeControlMidBrush" : "ThemeControlLowBrush");
 
         void Track_Scroll(object sender, PointerWheelEventArgs e) => Contents.Offset = Contents.Offset.WithX(Contents.Offset.X - e.Delta.Y * 20);
 

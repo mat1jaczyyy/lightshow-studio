@@ -33,7 +33,7 @@
 
       <Grid Grid.Column="1" Background="{DynamicResource BackgroundBrush}" DragDrop.AllowDrop="true" x:Name="DropZone">
         <Grid Margin="5 0" Background="Transparent" PointerPressed="Drag" x:Name="Draggable">
-          <TextBlock VerticalAlignment="Center" x:Name="Name" Cursor="Hand" />
+          <TextBlock VerticalAlignment="Center" Margin="-1 0 0 1" x:Name="Name" Cursor="Hand" />
         </Grid>
         
         <TextBox Background="{DynamicResource ThemeControlMidBrush}" BorderThickness="0 0 0 1" Opacity="0" IsHitTestVisible="false" HorizontalAlignment="Stretch" Padding="1" x:Name="Input" />

@@ -6,6 +6,8 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using AvaloniaColor = Avalonia.Media.Color;
 
+using Apollo.Core;
+
 namespace Apollo.Structures {
     public class Color {
         byte _r, _g, _b;
@@ -166,7 +168,7 @@ namespace Apollo.Structures {
 
             double max = new double[] {fr, fg, fb}.Max() / 255;
 
-            AvaloniaColor bg = (AvaloniaColor)Application.Current.Styles.FindResource("ThemeForegroundLowColor");
+            AvaloniaColor bg = App.GetResource<AvaloniaColor>("ThemeForegroundLowColor");
 
             return new SolidColorBrush(new AvaloniaColor(
                 255,
